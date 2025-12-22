@@ -578,12 +578,12 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <select class="scripture-chapter" id="chapter-${id}">
+                        <select class="scripture-chapter" id="chapter-${id}" onchange="updateKeyText()">
                             <option value="">-- Hoofdstuk --</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <input type="text" class="scripture-verses" placeholder="Verzen (bijv. 1-5)">
+                        <input type="text" class="scripture-verses" placeholder="Verzen (bijv. 1-5)" oninput="updateKeyText()">
                     </div>
                     <button type="button" class="btn btn-icon btn-secondary" onclick="removeScripture(this)" title="Verwijderen">×</button>
                 </div>
