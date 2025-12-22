@@ -411,6 +411,11 @@
                     <input type="text" id="theme" required placeholder="Thema van de preek">
                 </div>
 
+                <!-- Inleiding knop -->
+                <div class="form-group">
+                    <button type="button" class="btn btn-secondary" onclick="addIntroduction()">+ Inleiding toevoegen</button>
+                </div>
+
                 <!-- Preekpunten -->
                 <div class="form-group sermon-points">
                     <label>Punten van de preek (optioneel)</label>
@@ -428,11 +433,14 @@
                             <input type="text" class="point-title" placeholder="Derde punt">
                         </div>
                     </div>
+                    <div class="add-scripture" style="text-align: left; margin-top: 10px;">
+                        <button type="button" class="btn btn-small" onclick="addPoint()">+ Punt toevoegen</button>
+                    </div>
                 </div>
 
-                <!-- Inleiding knop -->
+                <!-- Toepassing knop -->
                 <div class="form-group">
-                    <button type="button" class="btn btn-secondary" onclick="addIntroduction()">+ Inleiding toevoegen</button>
+                    <button type="button" class="btn btn-secondary" onclick="addApplication()">+ Toepassing toevoegen</button>
                 </div>
 
                 <!-- Notities -->
@@ -653,6 +661,43 @@
             notesContainer.insertBefore(introDiv, notesContainer.firstChild);
         }
 
+        function addApplication() {
+            const notesContainer = document.getElementById('notes-container');
+            
+            // Check of er al een toepassing is
+            if (document.getElementById('application-note')) {
+                alert('Er is al een toepassing toegevoegd!');
+                return;
+            }
+
+            const appDiv = document.createElement('div');
+            appDiv.className = 'note-box';
+            appDiv.id = 'application-note';
+            appDiv.innerHTML = `
+                <h3>Toepassing</h3>
+                <textarea placeholder="Schrijf hier de toepassing..."></textarea>
+            `;
+            
+            // Voeg toe aan het einde
+            notesContainer.appendChild(appDiv);
+        }
+
+        function addPoint() {
+            const pointsContainer = document.getElementById('points-container');
+            const currentPoints = pointsContainer.querySelectorAll('.point-input');
+            const nextNumber = currentPoints.length + 1;
+            
+            const pointDiv = document.createElement('div');
+            pointDiv.className = 'point-input';
+            pointDiv.innerHTML = `
+                <span>${nextNumber}.</span>
+                <input type="text" class="point-title" placeholder="Punt ${nextNumber}">
+            `;
+            
+            pointsContainer.appendChild(pointDiv);
+            updateNotesFields();
+        }
+
         function updateNotesFields() {
             const pointInputs = document.querySelectorAll('.point-title');
             const points = Array.from(pointInputs)
@@ -661,12 +706,14 @@
             
             const notesContainer = document.getElementById('notes-container');
             
-            // Bewaar inleiding als die er is
+            // Bewaar inleiding en toepassing als die er zijn
             const introduction = document.getElementById('introduction-note');
             const introContent = introduction ? introduction.querySelector('textarea').value : '';
+            const application = document.getElementById('application-note');
+            const appContent = application ? application.querySelector('textarea').value : '';
             
-            // Clear behalve inleiding
-            const noteBoxes = notesContainer.querySelectorAll('.note-box:not(#introduction-note)');
+            // Clear behalve inleiding en toepassing
+            const noteBoxes = notesContainer.querySelectorAll('.note-box:not(#introduction-note):not(#application-note)');
             noteBoxes.forEach(box => box.remove());
             
             if (points.length === 0) {
@@ -677,7 +724,12 @@
                     <h3>Notities</h3>
                     <textarea placeholder="Schrijf hier je preeknotities..."></textarea>
                 `;
-                notesContainer.appendChild(noteDiv);
+                // Voeg toe voor toepassing (als die er is) of aan het einde
+                if (application) {
+                    notesContainer.insertBefore(noteDiv, application);
+                } else {
+                    notesContainer.appendChild(noteDiv);
+                }
             } else {
                 // Per punt een notitieveld
                 points.forEach((point, index) => {
@@ -687,7 +739,12 @@
                         <h3>${index + 1}. ${point}</h3>
                         <textarea placeholder="Notities voor dit punt..."></textarea>
                     `;
-                    notesContainer.appendChild(noteDiv);
+                    // Voeg toe voor toepassing (als die er is) of aan het einde
+                    if (application) {
+                        notesContainer.insertBefore(noteDiv, application);
+                    } else {
+                        notesContainer.appendChild(noteDiv);
+                    }
                 });
             }
         }
@@ -752,11 +809,19 @@
                 });
             }
             
-            document.querySelectorAll('.note-box:not(#introduction-note)').forEach((noteBox, index) => {
+            document.querySelectorAll('.note-box:not(#introduction-note):not(#application-note)').forEach((noteBox, index) => {
                 const title = noteBox.querySelector('h3').textContent;
                 const content = noteBox.querySelector('textarea').value;
                 notes.push({ title, content });
             });
+
+            const application = document.getElementById('application-note');
+            if (application) {
+                notes.push({
+                    title: 'Toepassing',
+                    content: application.querySelector('textarea').value
+                });
+            }
 
             const sermon = {
                 id: editingSermonId || Date.now(),
@@ -801,6 +866,26 @@
             // Reset notes
             const introNote = document.getElementById('introduction-note');
             if (introNote) introNote.remove();
+            const appNote = document.getElementById('application-note');
+            if (appNote) appNote.remove();
+            
+            // Reset punten naar default 3
+            const pointsContainer = document.getElementById('points-container');
+            pointsContainer.innerHTML = `
+                <div class="point-input">
+                    <span>1.</span>
+                    <input type="text" class="point-title" placeholder="Eerste punt">
+                </div>
+                <div class="point-input">
+                    <span>2.</span>
+                    <input type="text" class="point-title" placeholder="Tweede punt">
+                </div>
+                <div class="point-input">
+                    <span>3.</span>
+                    <input type="text" class="point-title" placeholder="Derde punt">
+                </div>
+            `;
+            
             updateNotesFields();
             
             editingSermonId = null;
@@ -882,28 +967,58 @@
                 }
             });
 
-            // Points
-            const pointInputs = document.querySelectorAll('.point-title');
-            sermon.points.forEach((point, index) => {
-                if (pointInputs[index]) {
-                    pointInputs[index].value = point;
+            // Points - eerst container resetten, dan vullen
+            const pointsContainer = document.getElementById('points-container');
+            pointsContainer.innerHTML = '';
+            
+            if (sermon.points.length === 0) {
+                // Default 3 punten
+                for (let i = 1; i <= 3; i++) {
+                    const pointDiv = document.createElement('div');
+                    pointDiv.className = 'point-input';
+                    pointDiv.innerHTML = `
+                        <span>${i}.</span>
+                        <input type="text" class="point-title" placeholder="Punt ${i}">
+                    `;
+                    pointsContainer.appendChild(pointDiv);
                 }
-            });
+            } else {
+                // Maak zoveel punten als er zijn
+                sermon.points.forEach((point, index) => {
+                    const pointDiv = document.createElement('div');
+                    pointDiv.className = 'point-input';
+                    pointDiv.innerHTML = `
+                        <span>${index + 1}.</span>
+                        <input type="text" class="point-title" placeholder="Punt ${index + 1}" value="${point}">
+                    `;
+                    pointsContainer.appendChild(pointDiv);
+                });
+            }
 
             updateNotesFields();
 
             // Notes
             setTimeout(() => {
-                sermon.notes.forEach((note, index) => {
+                sermon.notes.forEach((note) => {
                     if (note.title === 'Inleiding') {
                         if (!document.getElementById('introduction-note')) {
                             addIntroduction();
                         }
                         document.querySelector('#introduction-note textarea').value = note.content;
+                    } else if (note.title === 'Toepassing') {
+                        if (!document.getElementById('application-note')) {
+                            addApplication();
+                        }
+                        document.querySelector('#application-note textarea').value = note.content;
                     } else {
-                        const noteBoxes = document.querySelectorAll('.note-box:not(#introduction-note)');
-                        if (noteBoxes[index - (sermon.notes[0].title === 'Inleiding' ? 1 : 0)]) {
-                            noteBoxes[index - (sermon.notes[0].title === 'Inleiding' ? 1 : 0)].querySelector('textarea').value = note.content;
+                        // Reguliere punt notities
+                        const noteBoxes = document.querySelectorAll('.note-box:not(#introduction-note):not(#application-note)');
+                        const hasIntro = sermon.notes.some(n => n.title === 'Inleiding');
+                        let offset = hasIntro ? -1 : 0;
+                        
+                        const noteIndex = sermon.notes.findIndex(n => n.title === note.title) + offset;
+                        if (noteBoxes[noteIndex]) {
+                            noteBoxes[noteIndex].querySelector('textarea').value = note.content;
                         }
                     }
                 });
