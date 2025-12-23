@@ -1,1180 +1,390 @@
-<!DOCTYPE html>
-<html lang="nl">
+<! DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preeknotities</title>
+    <title>D1 Database Manager</title>
     <style>
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f5f5;
-            --text-primary: #000000;
-            --text-secondary: #666666;
-            --border-color: #ddd;
-            --accent-color: #4CAF50;
-            --button-bg: #4CAF50;
-            --button-text: #ffffff;
-            --input-bg: #ffffff;
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #1e1e1e;
-            --bg-secondary: #2d2d2d;
-            --text-primary: #ffffff;
-            --text-secondary: #aaaaaa;
-            --border-color: #444;
-            --accent-color: #6c9d6e;
-            --button-bg: #6c9d6e;
-            --button-text: #ffffff;
-            --input-bg: #2d2d2d;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
+            font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-
+        
         .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow:  0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
         }
-
-        header {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
+        
         h1 {
-            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
         }
-
-        .tabs {
-            display: flex;
-            background-color: var(--bg-secondary);
-            border-bottom: 2px solid var(--border-color);
-            overflow-x: auto;
-            position: sticky;
-            top: 60px;
-            z-index: 99;
+        
+        .form-section {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
         }
-
-        .tab {
-            padding: 12px 20px;
-            cursor: pointer;
-            background-color: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 14px;
-            white-space: nowrap;
-            transition: background-color 0.3s;
-        }
-
-        .tab.active {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        .tab:hover:not(.active) {
-            background-color: var(--border-color);
-        }
-
-        .tab-content {
-            display: none;
-            padding: 20px 10px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
+        
         .form-group {
             margin-bottom: 15px;
         }
-
+        
         label {
             display: block;
             margin-bottom: 5px;
-            font-weight: 500;
-            color: var(--text-primary);
+            color: #555;
+            font-weight: 600;
         }
-
-        input, select, textarea {
+        
+        input, textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 16px;
-            background-color: var(--input-bg);
-            color: var(--text-primary);
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size:  14px;
+            transition: border-color 0.3s;
         }
-
+        
+        input: focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
         textarea {
-            min-height: 120px;
             resize: vertical;
-            font-family: inherit;
+            min-height: 80px;
         }
-
-        .inline-group {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        .inline-group .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .btn {
-            background-color: var(--button-bg);
-            color: var(--button-text);
-            border: none;
+        
+        . btn {
             padding: 10px 20px;
-            border-radius: 4px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
-            transition: opacity 0.3s;
+            font-weight: 600;
+            transition: all 0.3s;
         }
-
-        .btn:hover {
-            opacity: 0.8;
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
         }
-
-        .btn-secondary {
-            background-color: var(--text-secondary);
+        
+        .btn-primary:hover {
+            background: #5568d3;
         }
-
-        .btn-small {
+        
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #38a169;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
             padding: 5px 10px;
             font-size: 12px;
         }
-
-        .btn-icon {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
+        
+        .btn-danger:hover {
+            background:  #e53e3e;
         }
-
-        .scripture-input {
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            background-color: var(--bg-secondary);
+        
+        .btn-edit {
+            background: #ed8936;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-right: 5px;
         }
-
-        .add-scripture {
-            text-align: center;
-            margin: 10px 0;
+        
+        .btn-edit:hover {
+            background: #dd6b20;
         }
-
-        .sermon-points {
+        
+        .items-list {
             margin-top: 20px;
         }
-
-        .point-input {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
-        .point-input span {
-            font-weight: bold;
-            min-width: 20px;
-        }
-
-        .point-input input {
-            flex: 1;
-        }
-
-        .notes-section {
-            margin-top: 20px;
-        }
-
-        .note-box {
-            margin-bottom: 15px;
-        }
-
-        .note-box h3 {
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        .sermon-item {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
+        
+        .item-card {
+            background: white;
+            border:  2px solid #e2e8f0;
+            border-radius: 8px;
             padding: 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            margin-bottom:  15px;
+            transition: all 0.3s;
         }
-
-        .sermon-item:hover {
-            background-color: var(--border-color);
+        
+        .item-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
         }
-
-        .sermon-item h3 {
-            margin-bottom: 5px;
-            color: var(--text-primary);
-        }
-
-        .sermon-item p {
-            margin: 3px 0;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .sort-controls {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .stats-grid {
-            display: grid;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 15px;
-        }
-
-        .stat-card h3 {
-            margin-bottom: 10px;
-            color: var(--text-primary);
-        }
-
-        .stat-item {
+        
+        .item-header {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            margin-bottom: 10px;
         }
-
-        .stat-item:last-child {
-            border-bottom: none;
+        
+        .item-title {
+            font-size: 18px;
+            font-weight:  600;
+            color: #2d3748;
         }
-
-        .actions {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+        
+        .item-description {
+            color: #4a5568;
+            line-height: 1.6;
         }
-
-        .custom-input {
-            display: none;
-            margin-top: 5px;
-        }
-
-        .custom-input.show {
-            display: block;
-        }
-
-        .delete-btn {
-            background-color: #f44336;
-            color: white;
+        
+        . item-actions {
             margin-top: 10px;
         }
-
-        @media (max-width: 600px) {
-            .inline-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .tabs {
-                font-size: 12px;
-            }
-
-            .tab {
-                padding: 10px 15px;
-            }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom:  20px;
+            text-align:  center;
+        }
+        
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .message. error {
+            background: #fed7d7;
+            color:  #742a2a;
         }
     </style>
 </head>
 <body>
-
-    <div class="tabs">
-        <button class="tab active" onclick="switchTab('nieuwe-preek')">Nieuwe Preek</button>
-        <button class="tab" onclick="switchTab('overzicht')">Overzicht</button>
-        <button class="tab" onclick="switchTab('statistieken')">Statistieken</button>
-        <button class="tab" onclick="switchTab('instellingen')">Instellingen</button>
-    </div>
-
     <div class="container">
-        <!-- Nieuwe Preek Tab -->
-        <div id="nieuwe-preek" class="tab-content active">
-            <form id="sermon-form">
-                <!-- Dominee -->
+        <h1>🗄️ D1 Database Manager</h1>
+        
+        <div id="message" class="message hidden"></div>
+        
+        <div class="form-section">
+            <h2 id="formTitle">Add New Item</h2>
+            <form id="itemForm">
+                <input type="hidden" id="itemId" value="">
+                
                 <div class="form-group">
-                    <label for="preacher">Welke dominee preekt er?</label>
-                    <select id="preacher" required>
-                        <option value="">-- Selecteer --</option>
-                        <option value="ds. L. Krooneman">ds. L. Krooneman</option>
-                        <option value="J.C. Breugem">J.C. Breugem</option>
-                        <option value="custom">Andere...</option>
-                    </select>
-                    <div id="custom-preacher" class="custom-input">
-                        <input type="text" placeholder="Naam van de dominee">
-                    </div>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
                 </div>
-
-                <!-- Gelegenheid -->
+                
                 <div class="form-group">
-                    <label for="occasion">Welke gelegenheid is het?</label>
-                    <select id="occasion">
-                        <option value="">-- Geen speciale gelegenheid --</option>
-                        <option value="Advent">Advent</option>
-                        <option value="Kerst">Kerst</option>
-                        <option value="Nieuwjaar">Nieuwjaar</option>
-                        <option value="Goede Vrijdag">Goede Vrijdag</option>
-                        <option value="Pasen">Pasen</option>
-                        <option value="Hemelvaart">Hemelvaart</option>
-                        <option value="Pinksteren">Pinksteren</option>
-                        <option value="Dankdag">Dankdag</option>
-                        <option value="Bededag">Bededag</option>
-                        <option value="Hervormingsdag">Hervormingsdag</option>
-                        <option value="custom">Andere...</option>
-                    </select>
-                    <div id="custom-occasion" class="custom-input">
-                        <input type="text" placeholder="Andere gelegenheid">
-                    </div>
+                    <label for="description">Description:</label>
+                    <textarea id="description" required></textarea>
                 </div>
-
-                <!-- Datum -->
-                <div class="form-group">
-                    <label for="date">Welke datum is het?</label>
-                    <input type="date" id="date" required>
-                </div>
-
-                <!-- Locatie -->
-                <div class="form-group">
-                    <label for="location">Welke locatie?</label>
-                    <select id="location" required>
-                        <option value="">-- Selecteer --</option>
-                        <option value="Hervormd Ede">Hervormd Ede</option>
-                        <option value="Hersteld Hervormd Schiedam">Hersteld Hervormd Schiedam</option>
-                        <option value="GGiN Melissant">GGiN Melissant</option>
-                        <option value="custom">Andere...</option>
-                    </select>
-                    <div id="custom-location" class="custom-input">
-                        <input type="text" placeholder="Andere locatie">
-                    </div>
-                </div>
-
-                <!-- Bijbelgedeelten -->
-                <div class="form-group">
-                    <label>Welk(e) bijbelgedeelte(n) word er gelezen?</label>
-                    <div id="scripture-container">
-                        <!-- Scripture inputs worden hier dynamisch toegevoegd -->
-                    </div>
-                    <div class="add-scripture">
-                        <button type="button" class="btn btn-small" onclick="addScripture()">+ Gedeelte toevoegen</button>
-                    </div>
-                </div>
-
-                <!-- Kerntekst -->
-                <div class="form-group">
-                    <label for="key-text">Wat is de kerntekst?</label>
-                    <input type="text" id="key-text" placeholder="Bijv. Genesis 1:1-3">
-                </div>
-
-                <!-- Thema -->
-                <div class="form-group">
-                    <label for="theme">Wat is het thema van de preek?</label>
-                    <input type="text" id="theme" required placeholder="Thema van de preek">
-                </div>
-
-                <!-- Inleiding knop -->
-                <div class="form-group">
-                    <button type="button" class="btn btn-secondary" onclick="addIntroduction()">+ Inleiding toevoegen</button>
-                </div>
-
-                <!-- Preekpunten -->
-                <div class="form-group sermon-points">
-                    <label>Punten van de preek (optioneel)</label>
-                    <div id="points-container">
-                        <div class="point-input">
-                            <span>1.</span>
-                            <input type="text" class="point-title" placeholder="Eerste punt">
-                        </div>
-                        <div class="point-input">
-                            <span>2.</span>
-                            <input type="text" class="point-title" placeholder="Tweede punt">
-                        </div>
-                        <div class="point-input">
-                            <span>3.</span>
-                            <input type="text" class="point-title" placeholder="Derde punt">
-                        </div>
-                    </div>
-                    <div class="add-scripture" style="text-align: left; margin-top: 10px;">
-                        <button type="button" class="btn btn-small" onclick="addPoint()">+ Punt toevoegen</button>
-                    </div>
-                </div>
-
-                <!-- Toepassing knop -->
-                <div class="form-group">
-                    <button type="button" class="btn btn-secondary" onclick="addApplication()">+ Toepassing toevoegen</button>
-                </div>
-
-                <!-- Notities -->
-                <div id="notes-container" class="notes-section">
-                    <!-- Notitievelden worden hier dynamisch toegevoegd -->
-                </div>
-
-                <!-- Acties -->
-                <div class="actions">
-                    <button type="submit" class="btn">Preek opslaan</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Formulier wissen</button>
-                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submitBtn">Add Item</button>
+                <button type="button" class="btn btn-success hidden" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
             </form>
         </div>
-
-        <!-- Overzicht Tab -->
-        <div id="overzicht" class="tab-content">
-            <div class="sort-controls">
-                <button class="btn btn-small" onclick="sortSermons('date-desc')">Datum (nieuw → oud)</button>
-                <button class="btn btn-small" onclick="sortSermons('date-asc')">Datum (oud → nieuw)</button>
-                <button class="btn btn-small" onclick="sortSermons('bible')">Volgorde Bijbel</button>
-            </div>
-            <div id="sermons-list">
-                <p style="color: var(--text-secondary);">Nog geen preken opgeslagen.</p>
-            </div>
-        </div>
-
-        <!-- Statistieken Tab -->
-        <div id="statistieken" class="tab-content">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Totaal aantal preken</h3>
-                    <p id="total-sermons" style="font-size: 2em; font-weight: bold;">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Preken per bijbelboek</h3>
-                    <div id="book-stats"></div>
-                </div>
-                <div class="stat-card">
-                    <h3>Preken per dominee</h3>
-                    <div id="preacher-stats"></div>
-                </div>
-                <div class="stat-card">
-                    <h3>Preken per locatie</h3>
-                    <div id="location-stats"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Instellingen Tab -->
-        <div id="instellingen" class="tab-content">
-            <div class="form-group">
-                <label for="theme-toggle">Thema</label>
-                <select id="theme-toggle" onchange="toggleTheme()">
-                    <option value="light">Light Mode</option>
-                    <option value="dark">Dark Mode</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <h3>Data beheer</h3>
-                <button class="btn btn-secondary" onclick="exportData()">Exporteer data (JSON)</button>
-                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="document.getElementById('import-file').click()">Importeer data</button>
-                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
-                <button class="btn delete-btn" onclick="clearAllData()">Verwijder alle data</button>
+        
+        <div class="items-list">
+            <h2>Items</h2>
+            <div id="itemsContainer">
+                <p style="text-align: center; color: #999;">Loading items...</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Bijbelboeken met hoofdstukaantallen
-        const bibleBooks = {
-            "Genesis": 50, "Exodus": 40, "Leviticus": 27, "Numeri": 36, "Deuteronomium": 34,
-            "Jozua": 24, "Rechters": 21, "Ruth": 4, "1 Samuël": 31, "2 Samuël": 24,
-            "1 Koningen": 22, "2 Koningen": 25, "1 Kronieken": 29, "2 Kronieken": 36,
-            "Ezra": 10, "Nehemia": 13, "Esther": 10, "Job": 42, "Psalmen": 150,
-            "Spreuken": 31, "Prediker": 12, "Hooglied": 8, "Jesaja": 66, "Jeremia": 52,
-            "Klaagliederen": 5, "Ezechiël": 48, "Daniël": 12, "Hosea": 14, "Joël": 3,
-            "Amos": 9, "Obadja": 1, "Jona": 4, "Micha": 7, "Nahum": 3, "Habakuk": 3,
-            "Zefanja": 3, "Haggaï": 2, "Zacharia": 14, "Maleachi": 4,
-            "Mattheüs": 28, "Markus": 16, "Lukas": 24, "Johannes": 21, "Handelingen": 28,
-            "Romeinen": 16, "1 Korinthe": 16, "2 Korinthe": 13, "Galaten": 6, "Efeziërs": 6,
-            "Filippenzen": 4, "Kolossenzen": 4, "1 Tessalonicenzen": 5, "2 Tessalonicenzen": 3,
-            "1 Timotheüs": 6, "2 Timotheüs": 4, "Titus": 3, "Filemon": 1, "Hebreeën": 13,
-            "Jakobus": 5, "1 Petrus": 5, "2 Petrus": 3, "1 Johannes": 5, "2 Johannes": 1,
-            "3 Johannes": 1, "Judas": 1, "Openbaring": 22
-        };
+        const API_BASE = '/api/items';
+        let editingId = null;
 
-        const bookOrder = Object.keys(bibleBooks);
-
-        let sermons = [];
-        let editingSermonId = null;
-
-        // Initialisatie
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSermons();
-            setDefaultDate();
-            addScripture();
-            updateNotesFields();
-            loadTheme();
+        // Load items on page load
+        document. addEventListener('DOMContentLoaded', () => {
+            loadItems();
             
-            // Event listeners voor custom inputs
-            document.getElementById('preacher').addEventListener('change', function() {
-                document.getElementById('custom-preacher').classList.toggle('show', this.value === 'custom');
-            });
-            
-            document.getElementById('occasion').addEventListener('change', function() {
-                document.getElementById('custom-occasion').classList.toggle('show', this.value === 'custom');
-            });
-            
-            document.getElementById('location').addEventListener('change', function() {
-                document.getElementById('custom-location').classList.toggle('show', this.value === 'custom');
-            });
-
-            // Update notes wanneer punten veranderen
-            document.getElementById('points-container').addEventListener('input', updateNotesFields);
-        });
-
-        function setDefaultDate() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-        }
-
-        function addScripture() {
-            const container = document.getElementById('scripture-container');
-            const scriptureDiv = document.createElement('div');
-            scriptureDiv.className = 'scripture-input';
-            
-            const id = Date.now();
-            scriptureDiv.innerHTML = `
-                <div class="inline-group">
-                    <div class="form-group">
-                        <select class="scripture-book" onchange="updateChapters(${id})">
-                            <option value="">-- Boek --</option>
-                            ${Object.keys(bibleBooks).map(book => `<option value="${book}">${book}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <select class="scripture-chapter" id="chapter-${id}" onchange="updateKeyText()">
-                            <option value="">-- Hoofdstuk --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" class="scripture-verses" placeholder="Verzen (bijv. 1-5)" oninput="updateKeyText()">
-                    </div>
-                    <button type="button" class="btn btn-icon btn-secondary" onclick="removeScripture(this)" title="Verwijderen">×</button>
-                </div>
-            `;
-            
-            container.appendChild(scriptureDiv);
-        }
-
-        function updateChapters(id) {
-            const scriptureDiv = document.getElementById(`chapter-${id}`).closest('.scripture-input');
-            const bookSelect = scriptureDiv.querySelector('.scripture-book');
-            const chapterSelect = document.getElementById(`chapter-${id}`);
-            
-            const book = bookSelect.value;
-            chapterSelect.innerHTML = '<option value="">-- Hoofdstuk --</option>';
-            
-            if (book && bibleBooks[book]) {
-                for (let i = 1; i <= bibleBooks[book]; i++) {
-                    chapterSelect.innerHTML += `<option value="${i}">${i}</option>`;
-                }
-            }
-
-            updateKeyText();
-        }
-
-        function removeScripture(btn) {
-            btn.closest('.scripture-input').remove();
-            updateKeyText();
-        }
-
-        function updateKeyText() {
-            const scriptures = getScriptures();
-            if (scriptures.length > 0 && !document.getElementById('key-text').value) {
-                document.getElementById('key-text').value = scriptures[0];
-            }
-        }
-
-        function getScriptures() {
-            const scriptureInputs = document.querySelectorAll('.scripture-input');
-            const scriptures = [];
-            
-            scriptureInputs.forEach(input => {
-                const book = input.querySelector('.scripture-book').value;
-                const chapter = input.querySelector('.scripture-chapter').value;
-                const verses = input.querySelector('.scripture-verses').value;
+            document.getElementById('itemForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
                 
-                if (book && chapter) {
-                    let text = `${book} ${chapter}`;
-                    if (verses) text += `:${verses}`;
-                    scriptures.push(text);
+                const name = document.getElementById('name').value;
+                const description = document. getElementById('description').value;
+                const id = document.getElementById('itemId').value;
+                
+                if (id) {
+                    await updateItem(id, name, description);
+                } else {
+                    await createItem(name, description);
                 }
             });
-            
-            return scriptures;
-        }
-
-        function addIntroduction() {
-            const notesContainer = document.getElementById('notes-container');
-            
-            // Check of er al een inleiding is
-            if (document.getElementById('introduction-note')) {
-                alert('Er is al een inleiding toegevoegd!');
-                return;
-            }
-
-            const introDiv = document.createElement('div');
-            introDiv.className = 'note-box';
-            introDiv.id = 'introduction-note';
-            introDiv.innerHTML = `
-                <h3>Inleiding</h3>
-                <textarea placeholder="Schrijf hier de inleiding..."></textarea>
-            `;
-            
-            // Voeg toe aan het begin
-            notesContainer.insertBefore(introDiv, notesContainer.firstChild);
-        }
-
-        function addApplication() {
-            const notesContainer = document.getElementById('notes-container');
-            
-            // Check of er al een toepassing is
-            if (document.getElementById('application-note')) {
-                alert('Er is al een toepassing toegevoegd!');
-                return;
-            }
-
-            const appDiv = document.createElement('div');
-            appDiv.className = 'note-box';
-            appDiv.id = 'application-note';
-            appDiv.innerHTML = `
-                <h3>Toepassing</h3>
-                <textarea placeholder="Schrijf hier de toepassing..."></textarea>
-            `;
-            
-            // Voeg toe aan het einde
-            notesContainer.appendChild(appDiv);
-        }
-
-        function addPoint() {
-            const pointsContainer = document.getElementById('points-container');
-            const currentPoints = pointsContainer.querySelectorAll('.point-input');
-            const nextNumber = currentPoints.length + 1;
-            
-            const pointDiv = document.createElement('div');
-            pointDiv.className = 'point-input';
-            pointDiv.innerHTML = `
-                <span>${nextNumber}.</span>
-                <input type="text" class="point-title" placeholder="Punt ${nextNumber}">
-            `;
-            
-            pointsContainer.appendChild(pointDiv);
-            updateNotesFields();
-        }
-
-        function updateNotesFields() {
-            const pointInputs = document.querySelectorAll('.point-title');
-            const points = Array.from(pointInputs)
-                .map(input => input.value.trim())
-                .filter(value => value !== '');
-            
-            const notesContainer = document.getElementById('notes-container');
-            
-            // Bewaar inleiding en toepassing als die er zijn
-            const introduction = document.getElementById('introduction-note');
-            const introContent = introduction ? introduction.querySelector('textarea').value : '';
-            const application = document.getElementById('application-note');
-            const appContent = application ? application.querySelector('textarea').value : '';
-            
-            // Clear behalve inleiding en toepassing
-            const noteBoxes = notesContainer.querySelectorAll('.note-box:not(#introduction-note):not(#application-note)');
-            noteBoxes.forEach(box => box.remove());
-            
-            if (points.length === 0) {
-                // Geen punten: één groot notitieveld
-                const noteDiv = document.createElement('div');
-                noteDiv.className = 'note-box';
-                noteDiv.innerHTML = `
-                    <h3>Notities</h3>
-                    <textarea placeholder="Schrijf hier je preeknotities..."></textarea>
-                `;
-                // Voeg toe voor toepassing (als die er is) of aan het einde
-                if (application) {
-                    notesContainer.insertBefore(noteDiv, application);
-                } else {
-                    notesContainer.appendChild(noteDiv);
-                }
-            } else {
-                // Per punt een notitieveld
-                points.forEach((point, index) => {
-                    const noteDiv = document.createElement('div');
-                    noteDiv.className = 'note-box';
-                    noteDiv.innerHTML = `
-                        <h3>${index + 1}. ${point}</h3>
-                        <textarea placeholder="Notities voor dit punt..."></textarea>
-                    `;
-                    // Voeg toe voor toepassing (als die er is) of aan het einde
-                    if (application) {
-                        notesContainer.insertBefore(noteDiv, application);
-                    } else {
-                        notesContainer.appendChild(noteDiv);
-                    }
-                });
-            }
-        }
-
-        function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            
-            // Refresh data als nodig
-            if (tabName === 'overzicht') {
-                displaySermons();
-            } else if (tabName === 'statistieken') {
-                updateStatistics();
-            }
-        }
-
-        document.getElementById('sermon-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveSermon();
         });
 
-        function saveSermon() {
-            // Haal waarden op
-            let preacher = document.getElementById('preacher').value;
-            if (preacher === 'custom') {
-                preacher = document.querySelector('#custom-preacher input').value;
+        // Load all items
+        async function loadItems() {
+            try {
+                const response = await fetch(API_BASE);
+                const items = await response.json();
+                
+                const container = document.getElementById('itemsContainer');
+                
+                if (items.length === 0) {
+                    container. innerHTML = '<p style="text-align: center; color: #999;">No items yet.  Add your first item above!</p>';
+                    return;
+                }
+                
+                container.innerHTML = items.map(item => `
+                    <div class="item-card">
+                        <div class="item-header">
+                            <span class="item-title">${escapeHtml(item.name)}</span>
+                        </div>
+                        <div class="item-description">${escapeHtml(item.description)}</div>
+                        <div class="item-actions">
+                            <button class="btn btn-edit" onclick="editItem(${item.id}, '${escapeHtml(item.name)}', '${escapeHtml(item.description)}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteItem(${item.id})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                showMessage('Error loading items:  ' + error.message, 'error');
             }
-            
-            let occasion = document.getElementById('occasion').value;
-            if (occasion === 'custom') {
-                occasion = document.querySelector('#custom-occasion input').value;
-            }
-            
-            let location = document.getElementById('location').value;
-            if (location === 'custom') {
-                location = document.querySelector('#custom-location input').value;
-            }
-
-            const date = document.getElementById('date').value;
-            const scriptures = getScriptures();
-            const keyText = document.getElementById('key-text').value;
-            const theme = document.getElementById('theme').value;
-            
-            // Punten
-            const pointInputs = document.querySelectorAll('.point-title');
-            const points = Array.from(pointInputs)
-                .map(input => input.value.trim())
-                .filter(value => value !== '');
-            
-            // Notities
-            const notes = [];
-            const introduction = document.getElementById('introduction-note');
-            if (introduction) {
-                notes.push({
-                    title: 'Inleiding',
-                    content: introduction.querySelector('textarea').value
-                });
-            }
-            
-            document.querySelectorAll('.note-box:not(#introduction-note):not(#application-note)').forEach((noteBox, index) => {
-                const title = noteBox.querySelector('h3').textContent;
-                const content = noteBox.querySelector('textarea').value;
-                notes.push({ title, content });
-            });
-
-            const application = document.getElementById('application-note');
-            if (application) {
-                notes.push({
-                    title: 'Toepassing',
-                    content: application.querySelector('textarea').value
-                });
-            }
-
-            const sermon = {
-                id: editingSermonId || Date.now(),
-                preacher,
-                occasion,
-                date,
-                location,
-                scriptures,
-                keyText,
-                theme,
-                points,
-                notes,
-                createdAt: editingSermonId ? sermons.find(s => s.id === editingSermonId).createdAt : new Date().toISOString()
-            };
-
-            if (editingSermonId) {
-                const index = sermons.findIndex(s => s.id === editingSermonId);
-                sermons[index] = sermon;
-                editingSermonId = null;
-            } else {
-                sermons.push(sermon);
-            }
-
-            saveSermons();
-            alert('Preek opgeslagen!');
-            resetForm();
-            switchTab('overzicht');
-            document.querySelector('.tab[onclick*="overzicht"]').click();
         }
 
-        function resetForm() {
-            document.getElementById('sermon-form').reset();
-            setDefaultDate();
-            
-            // Reset scripture inputs
-            document.getElementById('scripture-container').innerHTML = '';
-            addScripture();
-            
-            // Reset custom inputs
-            document.querySelectorAll('.custom-input').forEach(el => el.classList.remove('show'));
-            
-            // Reset notes
-            const introNote = document.getElementById('introduction-note');
-            if (introNote) introNote.remove();
-            const appNote = document.getElementById('application-note');
-            if (appNote) appNote.remove();
-            
-            // Reset punten naar default 3
-            const pointsContainer = document.getElementById('points-container');
-            pointsContainer.innerHTML = `
-                <div class="point-input">
-                    <span>1.</span>
-                    <input type="text" class="point-title" placeholder="Eerste punt">
-                </div>
-                <div class="point-input">
-                    <span>2.</span>
-                    <input type="text" class="point-title" placeholder="Tweede punt">
-                </div>
-                <div class="point-input">
-                    <span>3.</span>
-                    <input type="text" class="point-title" placeholder="Derde punt">
-                </div>
-            `;
-            
-            updateNotesFields();
-            
-            editingSermonId = null;
+        // Create new item
+        async function createItem(name, description) {
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Item created successfully!', 'success');
+                    document.getElementById('itemForm').reset();
+                    loadItems();
+                } else {
+                    showMessage('Error:  ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error creating item: ' + error.message, 'error');
+            }
         }
 
-        function displaySermons(sortedSermons = null) {
-            const list = document.getElementById('sermons-list');
-            const sermonsToDisplay = sortedSermons || sermons;
-            
-            if (sermonsToDisplay.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-secondary);">Nog geen preken opgeslagen.</p>';
+        // Update item
+        async function updateItem(id, name, description) {
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name, description })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Item updated successfully! ', 'success');
+                    cancelEdit();
+                    loadItems();
+                } else {
+                    showMessage('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating item: ' + error.message, 'error');
+            }
+        }
+
+        // Delete item
+        async function deleteItem(id) {
+            if (! confirm('Are you sure you want to delete this item?')) {
                 return;
             }
-
-            list.innerHTML = sermonsToDisplay.map(sermon => `
-                <div class="sermon-item" onclick="editSermon(${sermon.id})">
-                    <h3>${sermon.theme}</h3>
-                    <p><strong>Dominee:</strong> ${sermon.preacher}</p>
-                    <p><strong>Datum:</strong> ${new Date(sermon.date).toLocaleDateString('nl-NL')}</p>
-                    <p><strong>Locatie:</strong> ${sermon.location}</p>
-                    <p><strong>Kerntekst:</strong> ${sermon.keyText}</p>
-                    ${sermon.occasion ? `<p><strong>Gelegenheid:</strong> ${sermon.occasion}</p>` : ''}
-                </div>
-            `).join('');
+            
+            try {
+                const response = await fetch(`${API_BASE}? id=${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Item deleted successfully!', 'success');
+                    loadItems();
+                } else {
+                    showMessage('Error: ' + result. error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error deleting item: ' + error.message, 'error');
+            }
         }
 
-        function editSermon(id) {
-            const sermon = sermons.find(s => s.id === id);
-            if (!sermon) return;
-
-            editingSermonId = id;
-
-            // Vul formulier
-            const preacherSelect = document.getElementById('preacher');
-            if ([...preacherSelect.options].some(opt => opt.value === sermon.preacher)) {
-                preacherSelect.value = sermon.preacher;
-            } else {
-                preacherSelect.value = 'custom';
-                document.getElementById('custom-preacher').classList.add('show');
-                document.querySelector('#custom-preacher input').value = sermon.preacher;
-            }
-
-            const occasionSelect = document.getElementById('occasion');
-            if ([...occasionSelect.options].some(opt => opt.value === sermon.occasion)) {
-                occasionSelect.value = sermon.occasion;
-            } else if (sermon.occasion) {
-                occasionSelect.value = 'custom';
-                document.getElementById('custom-occasion').classList.add('show');
-                document.querySelector('#custom-occasion input').value = sermon.occasion;
-            }
-
-            const locationSelect = document.getElementById('location');
-            if ([...locationSelect.options].some(opt => opt.value === sermon.location)) {
-                locationSelect.value = sermon.location;
-            } else {
-                locationSelect.value = 'custom';
-                document.getElementById('custom-location').classList.add('show');
-                document.querySelector('#custom-location input').value = sermon.location;
-            }
-
-            document.getElementById('date').value = sermon.date;
-            document.getElementById('key-text').value = sermon.keyText;
-            document.getElementById('theme').value = sermon.theme;
-
-            // Scriptures
-            document.getElementById('scripture-container').innerHTML = '';
-            sermon.scriptures.forEach(scripture => {
-                addScripture();
-                // Parse en vul scripture (simpele versie)
-                const lastInput = document.querySelector('.scripture-input:last-child');
-                const parts = scripture.match(/^(.+?)\s+(\d+):?(.*)$/);
-                if (parts) {
-                    lastInput.querySelector('.scripture-book').value = parts[1];
-                    lastInput.querySelector('.scripture-book').dispatchEvent(new Event('change'));
-                    setTimeout(() => {
-                        lastInput.querySelector('.scripture-chapter').value = parts[2];
-                        if (parts[3]) lastInput.querySelector('.scripture-verses').value = parts[3];
-                    }, 50);
-                }
-            });
-
-            // Points - eerst container resetten, dan vullen
-            const pointsContainer = document.getElementById('points-container');
-            pointsContainer.innerHTML = '';
+        // Edit item
+        function editItem(id, name, description) {
+            document.getElementById('itemId').value = id;
+            document.getElementById('name').value = unescapeHtml(name);
+            document.getElementById('description').value = unescapeHtml(description);
+            document.getElementById('formTitle').textContent = 'Edit Item';
+            document.getElementById('submitBtn').textContent = 'Update Item';
+            document.getElementById('cancelBtn').classList.remove('hidden');
             
-            if (sermon.points.length === 0) {
-                // Default 3 punten
-                for (let i = 1; i <= 3; i++) {
-                    const pointDiv = document.createElement('div');
-                    pointDiv.className = 'point-input';
-                    pointDiv.innerHTML = `
-                        <span>${i}.</span>
-                        <input type="text" class="point-title" placeholder="Punt ${i}">
-                    `;
-                    pointsContainer.appendChild(pointDiv);
-                }
-            } else {
-                // Maak zoveel punten als er zijn
-                sermon.points.forEach((point, index) => {
-                    const pointDiv = document.createElement('div');
-                    pointDiv.className = 'point-input';
-                    pointDiv.innerHTML = `
-                        <span>${index + 1}.</span>
-                        <input type="text" class="point-title" placeholder="Punt ${index + 1}" value="${point}">
-                    `;
-                    pointsContainer.appendChild(pointDiv);
-                });
-            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
-            updateNotesFields();
+        // Cancel edit
+        function cancelEdit() {
+            document.getElementById('itemForm').reset();
+            document. getElementById('itemId').value = '';
+            document.getElementById('formTitle').textContent = 'Add New Item';
+            document.getElementById('submitBtn').textContent = 'Add Item';
+            document.getElementById('cancelBtn').classList.add('hidden');
+        }
 
-            // Notes
+        // Show message
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.classList.remove('hidden');
+            
             setTimeout(() => {
-                sermon.notes.forEach((note) => {
-                    if (note.title === 'Inleiding') {
-                        if (!document.getElementById('introduction-note')) {
-                            addIntroduction();
-                        }
-                        document.querySelector('#introduction-note textarea').value = note.content;
-                    } else if (note.title === 'Toepassing') {
-                        if (!document.getElementById('application-note')) {
-                            addApplication();
-                        }
-                        document.querySelector('#application-note textarea').value = note.content;
-                    } else {
-                        // Reguliere punt notities
-                        const noteBoxes = document.querySelectorAll('.note-box:not(#introduction-note):not(#application-note)');
-                        const hasIntro = sermon.notes.some(n => n.title === 'Inleiding');
-                        let offset = hasIntro ? -1 : 0;
-                        
-                        const noteIndex = sermon.notes.findIndex(n => n.title === note.title) + offset;
-                        if (noteBoxes[noteIndex]) {
-                            noteBoxes[noteIndex].querySelector('textarea').value = note.content;
-                        }
-                    }
-                });
-            }, 100);
-
-            // Scroll naar boven en switch naar nieuwe preek tab
-            window.scrollTo(0, 0);
-            document.querySelector('.tab[onclick*="nieuwe-preek"]').click();
+                messageEl. classList.add('hidden');
+            }, 3000);
         }
 
-        function sortSermons(method) {
-            let sorted = [...sermons];
-            
-            if (method === 'date-desc') {
-                sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
-            } else if (method === 'date-asc') {
-                sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-            } else if (method === 'bible') {
-                sorted.sort((a, b) => {
-                    const getBookIndex = (sermon) => {
-                        if (!sermon.scriptures || sermon.scriptures.length === 0) return 999;
-                        const match = sermon.scriptures[0].match(/^(.+?)\s+\d+/);
-                        if (!match) return 999;
-                        const bookName = match[1];
-                        return bookOrder.indexOf(bookName);
-                    };
-                    return getBookIndex(a) - getBookIndex(b);
-                });
-            }
-            
-            displaySermons(sorted);
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        function updateStatistics() {
-            document.getElementById('total-sermons').textContent = sermons.length;
-
-            // Per bijbelboek
-            const bookStats = {};
-            sermons.forEach(sermon => {
-                sermon.scriptures.forEach(scripture => {
-                    const match = scripture.match(/^(.+?)\s+\d+/);
-                    if (match) {
-                        const book = match[1];
-                        bookStats[book] = (bookStats[book] || 0) + 1;
-                    }
-                });
-            });
-
-            const bookStatsEl = document.getElementById('book-stats');
-            bookStatsEl.innerHTML = Object.entries(bookStats)
-                .sort((a, b) => b[1] - a[1])
-                .map(([book, count]) => `
-                    <div class="stat-item">
-                        <span>${book}</span>
-                        <span>${count}</span>
-                    </div>
-                `).join('') || '<p style="color: var(--text-secondary);">Geen data</p>';
-
-            // Per dominee
-            const preacherStats = {};
-            sermons.forEach(sermon => {
-                preacherStats[sermon.preacher] = (preacherStats[sermon.preacher] || 0) + 1;
-            });
-
-            const preacherStatsEl = document.getElementById('preacher-stats');
-            preacherStatsEl.innerHTML = Object.entries(preacherStats)
-                .sort((a, b) => b[1] - a[1])
-                .map(([preacher, count]) => `
-                    <div class="stat-item">
-                        <span>${preacher}</span>
-                        <span>${count}</span>
-                    </div>
-                `).join('') || '<p style="color: var(--text-secondary);">Geen data</p>';
-
-            // Per locatie
-            const locationStats = {};
-            sermons.forEach(sermon => {
-                locationStats[sermon.location] = (locationStats[sermon.location] || 0) + 1;
-            });
-
-            const locationStatsEl = document.getElementById('location-stats');
-            locationStatsEl.innerHTML = Object.entries(locationStats)
-                .sort((a, b) => b[1] - a[1])
-                .map(([location, count]) => `
-                    <div class="stat-item">
-                        <span>${location}</span>
-                        <span>${count}</span>
-                    </div>
-                `).join('') || '<p style="color: var(--text-secondary);">Geen data</p>';
-        }
-
-        function saveSermons() {
-            localStorage.setItem('sermons', JSON.stringify(sermons));
-        }
-
-        function loadSermons() {
-            const saved = localStorage.getItem('sermons');
-            if (saved) {
-                sermons = JSON.parse(saved);
-            }
-        }
-
-        function toggleTheme() {
-            const theme = document.getElementById('theme-toggle').value;
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-        }
-
-        function loadTheme() {
-            const saved = localStorage.getItem('theme') || 'light';
-            document.getElementById('theme-toggle').value = saved;
-            document.documentElement.setAttribute('data-theme', saved);
-        }
-
-        function exportData() {
-            const dataStr = JSON.stringify(sermons, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `preeknotities-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (confirm(`${imported.length} preken gevonden. Huidige data overschrijven?`)) {
-                        sermons = imported;
-                        saveSermons();
-                        displaySermons();
-                        updateStatistics();
-                        alert('Data geïmporteerd!');
-                    }
-                } catch (err) {
-                    alert('Fout bij importeren: ' + err.message);
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function clearAllData() {
-            if (confirm('Weet je zeker dat je ALLE data wilt verwijderen? Dit kan niet ongedaan gemaakt worden!')) {
-                if (confirm('Laatste waarschuwing: alle preken worden verwijderd!')) {
-                    sermons = [];
-                    saveSermons();
-                    displaySermons();
-                    updateStatistics();
-                    alert('Alle data verwijderd.');
-                }
-            }
+        // Unescape HTML
+        function unescapeHtml(text) {
+            const div = document.createElement('div');
+            div.innerHTML = text;
+            return div. textContent;
         }
     </script>
 </body>
