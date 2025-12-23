@@ -1,0 +1,4 @@
+[[d1_databases]]
+binding = "DB" # This is the variable name you'll use in your code
+database_name = "test"
+database_id = "2a3ac4b9-ef51-41d8-9190-df50e2d0c79f" # From the create command output
