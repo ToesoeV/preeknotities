@@ -412,8 +412,8 @@ function addPassageEntry() {
             </div>
 
             <div class="form-group">
-                <label>Link naar bijbelgedeelte <small style="opacity: 0.7;">(wordt automatisch gegenereerd)</small></label>
-                <input type="url" class="passage-url" placeholder="Vul eerst bijbelboek en hoofdstuk in...">
+                <label>Link naar bijbelgedeelte</label>
+                <a href="#" class="passage-url" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 8px 12px; background: #dbeafe; color: #1e40af; border-radius: 4px; text-decoration: none; font-size: 0.9rem;">Vul eerst bijbelboek en hoofdstuk in...</a>
             </div>
 
             <div class="form-group checkbox-group">
@@ -435,9 +435,7 @@ function setupPassageUrlAutoGeneration(passageEntry) {
     const bookSelect = passageEntry.querySelector('.bible-book');
     const chapterStart = passageEntry.querySelector('.chapter-start');
     const verseStart = passageEntry.querySelector('.verse-start');
-    const chapterEnd = passageEntry.querySelector('.chapter-end');
-    const verseEnd = passageEntry.querySelector('.verse-end');
-    const urlInput = passageEntry.querySelector('.passage-url');
+    const urlLink = passageEntry.querySelector('.passage-url');
     
     // Functie om URL te genereren
     const updateUrl = () => {
@@ -451,11 +449,15 @@ function setupPassageUrlAutoGeneration(passageEntry) {
                 verseStart.value || null
             );
             
-            // Alleen updaten als gebruiker nog niks heeft ingetypt
-            if (!urlInput.dataset.manuallyEdited) {
-                urlInput.value = url;
-                urlInput.placeholder = 'URL automatisch gegenereerd';
-            }
+            // Update link href en text
+            urlLink.href = url;
+            urlLink.textContent = url;
+            urlLink.style.pointerEvents = 'auto';
+        } else {
+            // Reset naar placeholder staat
+            urlLink.href = '#';
+            urlLink.textContent = 'Vul eerst bijbelboek en hoofdstuk in...';
+            urlLink.style.pointerEvents = 'none';
         }
     };
     
@@ -463,20 +465,6 @@ function setupPassageUrlAutoGeneration(passageEntry) {
     bookSelect.addEventListener('change', updateUrl);
     chapterStart.addEventListener('input', updateUrl);
     verseStart.addEventListener('input', updateUrl);
-    chapterEnd.addEventListener('input', updateUrl);
-    verseEnd.addEventListener('input', updateUrl);
-    
-    // Markeer als handmatig aangepast als gebruiker direct in URL veld typt
-    urlInput.addEventListener('input', () => {
-        urlInput.dataset.manuallyEdited = 'true';
-    });
-    
-    // Reset manual edit flag als URL leeg is
-    urlInput.addEventListener('blur', () => {
-        if (!urlInput.value) {
-            delete urlInput.dataset.manuallyEdited;
-        }
-    });
 }
 
 function removePassage(passageId) {
@@ -549,6 +537,9 @@ async function handleSermonSubmit(e) {
             const bibleBookId = entry.querySelector('.bible-book').value;
             if (! bibleBookId) return; // Skip als geen boek geselecteerd
             
+            const urlLink = entry.querySelector('.passage-url');
+            const passageUrl = urlLink.href !== '#' && urlLink.href !== window.location.href ? urlLink.href : null;
+            
             passages.push({
                 bible_book_id: parseInt(bibleBookId),
                 chapter_start: parseInt(entry.querySelector('.chapter-start').value),
@@ -556,7 +547,7 @@ async function handleSermonSubmit(e) {
                 chapter_end: parseInt(entry.querySelector('.chapter-end').value) || null,
                 verse_end: parseInt(entry.querySelector('.verse-end').value) || null,
                 is_main_passage:  entry.querySelector('.is-main').checked ?  1 : 0,
-                passage_url: entry.querySelector('.passage-url').value || null
+                passage_url: passageUrl
             });
         });
 
@@ -649,6 +640,10 @@ async function handleSermonSubmit(e) {
                     passages: Array.from(document.querySelectorAll('.passage-entry')).map(entry => {
                         const bibleBookId = entry.querySelector('.bible-book').value;
                         if (!bibleBookId) return null;
+                        
+                        const urlLink = entry.querySelector('.passage-url');
+                        const passageUrl = urlLink.href !== '#' && urlLink.href !== window.location.href ? urlLink.href : null;
+                        
                         return {
                             bible_book_id: parseInt(bibleBookId),
                             chapter_start: parseInt(entry.querySelector('.chapter-start').value),
@@ -656,7 +651,7 @@ async function handleSermonSubmit(e) {
                             chapter_end: parseInt(entry.querySelector('.chapter-end').value) || null,
                             verse_end: parseInt(entry.querySelector('.verse-end').value) || null,
                             is_main_passage: entry.querySelector('.is-main').checked ? 1 : 0,
-                            passage_url: entry.querySelector('.passage-url').value || null
+                            passage_url: passageUrl
                         };
                     }).filter(p => p !== null),
                     points: Array.from(document.querySelectorAll('.point-entry')).map((entry, index) => {
@@ -894,8 +889,8 @@ async function loadStatistics() {
         document.getElementById('sermons-this-year').textContent = stats.sermonsThisYear || 0;
         
         if (stats.bookStats && stats.bookStats.length > 0) {
-            // Lookup book name from local BIBLE_BOOKS array
-            const book = BIBLE_BOOKS.find(b => b.id == stats.bookStats[0].bible_book_id);
+            // Lookup book name from local BIBLE_BOOKS array using book_id
+            const book = BIBLE_BOOKS.find(b => b.id == stats.bookStats[0].book_id);
             document.getElementById('most-used-book').textContent = book ? book.name : '-';
         } else {
             document.getElementById('most-used-book').textContent = '-';
@@ -1007,9 +1002,9 @@ function displayBooksStatsFromAPI(stats) {
     const maxCount = stats[0] ? stats[0].count : 1;
     
     stats.forEach(stat => {
-        // Lookup book name from local BIBLE_BOOKS array
-        const book = BIBLE_BOOKS.find(b => b.id == stat.bible_book_id);
-        const bookName = book ? book.name : `Book ID ${stat.bible_book_id}`;
+        // Lookup book name from local BIBLE_BOOKS array using book_id
+        const book = BIBLE_BOOKS.find(b => b.id == stat.book_id);
+        const bookName = book ? book.name : `Book ID ${stat.book_id}`;
         
         const percentage = (stat.count / maxCount * 100).toFixed(1);
         container.innerHTML += `

@@ -28,11 +28,11 @@ export async function onRequestGet(context) {
     
     // Get book stats without JOIN - return book_id and count
     const { results: bookStats } = await context.env.DB.prepare(
-      `SELECT sp.bible_book_id, COUNT(sp.id) as count 
+      `SELECT sp.book_id, COUNT(sp.id) as count 
        FROM sermon_passages sp 
        JOIN sermons s ON sp.sermon_id = s.id 
        WHERE s.user_id = ? 
-       GROUP BY sp.bible_book_id 
+       GROUP BY sp.book_id 
        ORDER BY count DESC 
        LIMIT 10`
     ).bind(userEmail).all();

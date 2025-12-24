@@ -1,6 +1,6 @@
 // IndexedDB helper voor offline sermon opslag
 const DB_NAME = 'PreeknotitiesOffline';
-const DB_VERSION = 2; // Verhoogd voor nieuwe versie
+const DB_VERSION = 3; // Verhoogd om schema te resetten
 const STORE_NAME = 'pending-sermons';
 
 class OfflineDB {
