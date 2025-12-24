@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
     populateBibleBookSelects(); // Gebruikt BIBLE_BOOKS uit static-data.js
     populateOccasionSelects(); // Gebruikt OCCASIONS uit static-data.js
     
+    // Setup dynamic dropdowns
+    initializeLocationDropdown();
+    initializePreacherDropdown();
+    
     // Setup auto-generatie voor eerste bijbelgedeelte
     const firstPassage = document.querySelector('[data-passage-id="1"]');
     if (firstPassage) {
@@ -489,6 +493,166 @@ function populateOccasionSelects() {
     });
 }
 
+// ===== DYNAMIC DROPDOWNS =====
+function initializeLocationDropdown() {
+    const locationSelect = document.getElementById('location');
+    const locationCustom = document.getElementById('location-custom');
+    
+    // Load saved locations from localStorage
+    loadSavedLocations();
+    
+    // Handle dropdown change
+    locationSelect.addEventListener('change', function() {
+        if (this.value === '__add_new__') {
+            locationCustom.style.display = 'block';
+            locationCustom.focus();
+            locationCustom.required = true;
+            this.required = false;
+        } else {
+            locationCustom.style.display = 'none';
+            locationCustom.required = false;
+            this.required = true;
+        }
+    });
+    
+    // Handle custom input
+    locationCustom.addEventListener('blur', function() {
+        if (this.value.trim()) {
+            addNewLocation(this.value.trim());
+            locationSelect.value = this.value.trim();
+            this.style.display = 'none';
+            this.required = false;
+            locationSelect.required = true;
+        }
+    });
+    
+    locationCustom.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            this.blur();
+        }
+    });
+}
+
+function initializePreacherDropdown() {
+    const preacherSelect = document.getElementById('preacher');
+    const preacherCustom = document.getElementById('preacher-custom');
+    
+    // Load saved preachers from localStorage
+    loadSavedPreachers();
+    
+    // Handle dropdown change
+    preacherSelect.addEventListener('change', function() {
+        if (this.value === '__add_new__') {
+            preacherCustom.style.display = 'block';
+            preacherCustom.focus();
+            preacherCustom.required = true;
+            this.required = false;
+        } else {
+            preacherCustom.style.display = 'none';
+            preacherCustom.required = false;
+            this.required = true;
+        }
+    });
+    
+    // Handle custom input
+    preacherCustom.addEventListener('blur', function() {
+        if (this.value.trim()) {
+            addNewPreacher(this.value.trim());
+            preacherSelect.value = this.value.trim();
+            this.style.display = 'none';
+            this.required = false;
+            preacherSelect.required = true;
+        }
+    });
+    
+    preacherCustom.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            this.blur();
+        }
+    });
+}
+
+function loadSavedLocations() {
+    const locations = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+    const select = document.getElementById('location');
+    
+    // Clear existing options except default and add new
+    const defaultOption = select.querySelector('option[value=""]');
+    const addNewOption = select.querySelector('option[value="__add_new__"]');
+    select.innerHTML = '';
+    
+    if (defaultOption) select.appendChild(defaultOption.cloneNode(true));
+    
+    // Add saved locations
+    locations.forEach(location => {
+        const option = document.createElement('option');
+        option.value = location;
+        option.textContent = location;
+        select.appendChild(option);
+    });
+    
+    if (addNewOption) select.appendChild(addNewOption.cloneNode(true));
+}
+
+function loadSavedPreachers() {
+    const preachers = JSON.parse(localStorage.getItem('savedPreachers') || '[]');
+    const select = document.getElementById('preacher');
+    
+    // Clear existing options except default and add new
+    const defaultOption = select.querySelector('option[value=""]');
+    const addNewOption = select.querySelector('option[value="__add_new__"]');
+    select.innerHTML = '';
+    
+    if (defaultOption) select.appendChild(defaultOption.cloneNode(true));
+    
+    // Add saved preachers
+    preachers.forEach(preacher => {
+        const option = document.createElement('option');
+        option.value = preacher;
+        option.textContent = preacher;
+        select.appendChild(option);
+    });
+    
+    if (addNewOption) select.appendChild(addNewOption.cloneNode(true));
+}
+
+function addNewLocation(location) {
+    const locations = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+    if (!locations.includes(location)) {
+        locations.push(location);
+        locations.sort();
+        localStorage.setItem('savedLocations', JSON.stringify(locations));
+        loadSavedLocations();
+    }
+}
+
+function addNewPreacher(preacher) {
+    const preachers = JSON.parse(localStorage.getItem('savedPreachers') || '[]');
+    if (!preachers.includes(preacher)) {
+        preachers.push(preacher);
+        preachers.sort();
+        localStorage.setItem('savedPreachers', JSON.stringify(preachers));
+        loadSavedPreachers();
+    }
+}
+
+function getFieldValue(fieldName) {
+    const select = document.getElementById(fieldName);
+    const customInput = document.getElementById(fieldName + '-custom');
+    
+    // If custom input is visible and has value, use that
+    if (customInput.style.display !== 'none' && customInput.value.trim()) {
+        return customInput.value.trim();
+    }
+    
+    // Otherwise use the select value (unless it's the add new option)
+    if (select.value && select.value !== '__add_new__') {
+        return select.value;
+    }
+    
+    return '';
+}
+
 // ===== BIJBELGEDEELTE TOEVOEGEN =====
 function addPassageEntry() {
     passageCounter++;
@@ -731,8 +895,8 @@ async function handleSermonSubmit(e) {
         }
         
         const sermonData = {
-            location: document.getElementById('location').value,
-            preacher: document.getElementById('preacher').value,
+            location: getFieldValue('location'),
+            preacher: getFieldValue('preacher'),
             sermon_date: document.getElementById('sermon-date').value,
             core_text: coreTextReference,
             occasion_id: document.getElementById('occasion').value || null

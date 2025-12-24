@@ -59,12 +59,20 @@
                     
                     <div class="form-group">
                         <label for="location">Locatie *</label>
-                        <input type="text" id="location" required placeholder="bijv. Grote Kerk Amsterdam">
+                        <select id="location" required>
+                            <option value="">-- Selecteer locatie --</option>
+                            <option value="__add_new__">+ Nieuwe locatie toevoegen...</option>
+                        </select>
+                        <input type="text" id="location-custom" style="display: none;" placeholder="Nieuwe locatie invoeren">
                     </div>
 
                     <div class="form-group">
                         <label for="preacher">Predikant/Dominee *</label>
-                        <input type="text" id="preacher" required placeholder="bijv. Ds. J.  de Vries">
+                        <select id="preacher" required>
+                            <option value="">-- Selecteer predikant --</option>
+                            <option value="__add_new__">+ Nieuwe predikant toevoegen...</option>
+                        </select>
+                        <input type="text" id="preacher-custom" style="display: none;" placeholder="Nieuwe predikant invoeren">
                     </div>
 
                     <div class="form-group">
