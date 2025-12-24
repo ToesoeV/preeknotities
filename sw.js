@@ -1,4 +1,4 @@
-const CACHE_NAME = 'preeknotities-v9';
+const CACHE_NAME = 'preeknotities-v10';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -200,7 +200,7 @@ function getPendingSermons(db) {
     const transaction = db.transaction(['pending-sermons'], 'readonly');
     const store = transaction.objectStore('pending-sermons');
     const index = store.index('synced');
-    const request = index.getAll(false);
+    const request = index.getAll(IDBKeyRange.only(0));
     
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
