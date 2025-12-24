@@ -86,6 +86,8 @@ async function checkAndSyncPending() {
         
         console.log(`📤 Synchroniseren ${pendingSermons.length} pending sermons...`);
         
+        let syncCount = 0;
+        
         for (const sermon of pendingSermons) {
             try {
                 const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons`, {
@@ -105,16 +107,24 @@ async function checkAndSyncPending() {
                 if (result.success) {
                     await offlineDB.deleteSynced(sermon.id);
                     console.log(`✅ Preek ${sermon.id} gesynchroniseerd`);
+                    syncCount++;
                 }
             } catch (error) {
                 console.error(`❌ Fout bij synchroniseren preek ${sermon.id}:`, error);
+                // Stop met sync als we offline zijn gegaan
+                if (!navigator.onLine) break;
             }
         }
         
         await updatePendingCount();
         
+        // Toon melding als er iets gesynchroniseerd is
+        if (syncCount > 0) {
+            console.log(`✅ ${syncCount} preek${syncCount > 1 ? 'en' : ''} gesynchroniseerd`);
+        }
+        
         // Refresh sermon list if we're on that tab
-        if (document.getElementById('view-sermons').classList.contains('active')) {
+        if (navigator.onLine && document.getElementById('view-sermons').classList.contains('active')) {
             loadSermons();
         }
         
@@ -495,6 +505,17 @@ function resetForm() {
 // ===== PREKEN LADEN EN TONEN =====
 async function loadSermons() {
     const listDiv = document.getElementById('sermons-list');
+    
+    // Check of we offline zijn
+    if (!navigator.onLine) {
+        listDiv.innerHTML = `
+            <div class="message" style="background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                📱 Offline - preken bekijken is alleen beschikbaar wanneer je online bent
+            </div>
+        `;
+        return;
+    }
+    
     listDiv.innerHTML = '<div class="loading">Preken laden</div>';
 
     try {
@@ -508,7 +529,15 @@ async function loadSermons() {
         displaySermons(sermons, listDiv);
         populateFilterOptions(sermons);
     } catch (error) {
-        listDiv.innerHTML = `<div class="message error">Fout bij laden:  ${error.message}</div>`;
+        if (!navigator.onLine || error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+            listDiv.innerHTML = `
+                <div class="message" style="background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                    📱 Offline - preken bekijken is alleen beschikbaar wanneer je online bent
+                </div>
+            `;
+        } else {
+            listDiv.innerHTML = `<div class="message error">Fout bij laden:  ${error.message}</div>`;
+        }
     }
 }
 
@@ -571,12 +600,23 @@ function populateFilterOptions(sermons) {
 }
 
 // ===== ZOEKEN =====
+// ===== ZOEKEN =====
 async function searchSermons() {
     const searchTerm = document.getElementById('search-input').value;
     const resultsDiv = document.getElementById('search-results');
     
     if (!searchTerm) {
         resultsDiv.innerHTML = '<div class="empty-state"><p>Voer een zoekterm in</p></div>';
+        return;
+    }
+    
+    // Check of we offline zijn
+    if (!navigator.onLine) {
+        resultsDiv.innerHTML = `
+            <div class="message" style="background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                📱 Offline - zoeken is alleen beschikbaar wanneer je online bent
+            </div>
+        `;
         return;
     }
 
@@ -592,7 +632,15 @@ async function searchSermons() {
         
         displaySermons(results, resultsDiv);
     } catch (error) {
-        resultsDiv.innerHTML = `<div class="message error">Fout bij zoeken: ${error.message}</div>`;
+        if (!navigator.onLine || error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+            resultsDiv.innerHTML = `
+                <div class="message" style="background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                    📱 Offline - zoeken is alleen beschikbaar wanneer je online bent
+                </div>
+            `;
+        } else {
+            resultsDiv.innerHTML = `<div class="message error">Fout bij zoeken: ${error.message}</div>`;
+        }
     }
 }
 
@@ -847,16 +895,22 @@ function formatPassageReference(passage, bookName) {
 }
 
 async function displayUserInfo() {
+    // Skip als offline
+    if (!navigator.onLine) {
+        return;
+    }
+    
     try {
         const response = await fetch('/api/user-info');
         const data = await response.json();
         
         if (data.email) {
             const userInfoEl = document.getElementById('user-info');
-            userInfoEl. innerHTML = `✓ Ingelogd als: <strong>${data.email}</strong>`;
+            userInfoEl.innerHTML = `✓ Ingelogd als: <strong>${data.email}</strong>`;
         }
     } catch (error) {
         console.error('Could not load user info:', error);
+        // Niet erg - we zijn waarschijnlijk offline
     }
 }
 
