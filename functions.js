@@ -26,6 +26,12 @@ document.addEventListener('DOMContentLoaded', function() {
     populateBibleBookSelects(); // Gebruikt BIBLE_BOOKS uit static-data.js
     populateOccasionSelects(); // Gebruikt OCCASIONS uit static-data.js
     
+    // Setup auto-generatie voor eerste bijbelgedeelte
+    const firstPassage = document.querySelector('[data-passage-id="1"]');
+    if (firstPassage) {
+        setupPassageUrlAutoGeneration(firstPassage);
+    }
+    
     setupEventListeners();
     setTodayDate();
     displayUserInfo();
@@ -406,8 +412,8 @@ function addPassageEntry() {
             </div>
 
             <div class="form-group">
-                <label>Link naar bijbelgedeelte</label>
-                <input type="url" class="passage-url" placeholder="https://debijbel.nl/...">
+                <label>Link naar bijbelgedeelte <small style="opacity: 0.7;">(wordt automatisch gegenereerd)</small></label>
+                <input type="url" class="passage-url" placeholder="Vul eerst bijbelboek en hoofdstuk in...">
             </div>
 
             <div class="form-group checkbox-group">
@@ -418,7 +424,61 @@ function addPassageEntry() {
     `;
     
     container.insertAdjacentHTML('beforeend', passageHTML);
-    populateBibleBookSelects(); // Populate nieuwe select
+    populateBibleBookSelects();
+    
+    // Voeg event listeners toe voor auto-generatie URL
+    const newEntry = container.querySelector(`[data-passage-id="${passageCounter}"]`);
+    setupPassageUrlAutoGeneration(newEntry);
+}
+
+function setupPassageUrlAutoGeneration(passageEntry) {
+    const bookSelect = passageEntry.querySelector('.bible-book');
+    const chapterStart = passageEntry.querySelector('.chapter-start');
+    const verseStart = passageEntry.querySelector('.verse-start');
+    const chapterEnd = passageEntry.querySelector('.chapter-end');
+    const verseEnd = passageEntry.querySelector('.verse-end');
+    const urlInput = passageEntry.querySelector('.passage-url');
+    
+    // Functie om URL te genereren
+    const updateUrl = () => {
+        const bookId = bookSelect.value;
+        const chapter = chapterStart.value;
+        
+        if (bookId && chapter) {
+            const url = generateBibleUrl(
+                bookId,
+                chapter,
+                verseStart.value || null,
+                chapterEnd.value || null,
+                verseEnd.value || null
+            );
+            
+            // Alleen updaten als gebruiker nog niks heeft ingetypt
+            if (!urlInput.dataset.manuallyEdited) {
+                urlInput.value = url;
+                urlInput.placeholder = 'URL automatisch gegenereerd';
+            }
+        }
+    };
+    
+    // Luister naar wijzigingen
+    bookSelect.addEventListener('change', updateUrl);
+    chapterStart.addEventListener('input', updateUrl);
+    verseStart.addEventListener('input', updateUrl);
+    chapterEnd.addEventListener('input', updateUrl);
+    verseEnd.addEventListener('input', updateUrl);
+    
+    // Markeer als handmatig aangepast als gebruiker direct in URL veld typt
+    urlInput.addEventListener('input', () => {
+        urlInput.dataset.manuallyEdited = 'true';
+    });
+    
+    // Reset manual edit flag als URL leeg is
+    urlInput.addEventListener('blur', () => {
+        if (!urlInput.value) {
+            delete urlInput.dataset.manuallyEdited;
+        }
+    });
 }
 
 function removePassage(passageId) {
