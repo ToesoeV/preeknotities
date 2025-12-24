@@ -174,9 +174,24 @@ async function syncPendingSermons() {
 // IndexedDB helpers voor Service Worker
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('PreeknotitiesOffline', 1);
+    const request = indexedDB.open('PreeknotitiesOffline', 2); // Match DB_VERSION
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onerror = () => {
+      console.error('❌ SW: IndexedDB open error:', request.error);
+      reject(request.error);
+    };
+    request.onupgradeneeded = (event) => {
+      // Schema upgrade handled by offline-db.js, but add safety check
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('pending-sermons')) {
+        const store = db.createObjectStore('pending-sermons', { 
+          keyPath: 'id', 
+          autoIncrement: true 
+        });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+        store.createIndex('synced', 'synced', { unique: false });
+      }
+    };
   });
 }
 

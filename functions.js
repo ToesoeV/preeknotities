@@ -207,11 +207,15 @@ async function updatePendingCount() {
         }
     } catch (error) {
         console.error('Error updating pending count:', error);
+        // Don't throw - this is not critical
     }
 }
 
 async function checkAndSyncPending() {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine) {
+        console.log('📱 Offline - sync uitgesteld');
+        return;
+    }
     
     try {
         await offlineDB.init();
@@ -266,6 +270,7 @@ async function checkAndSyncPending() {
         
     } catch (error) {
         console.error('Error checking pending sermons:', error);
+        // Don't throw - this is background sync
     }
 }
 
@@ -1097,5 +1102,16 @@ async function clearAllCaches() {
     console.log('✅ Reload de pagina om een verse versie te krijgen');
 }
 
+// Reset IndexedDB (gebruik in console: resetOfflineDB())
+async function resetOfflineDB() {
+    try {
+        await offlineDB.resetDatabase();
+        console.log('✅ IndexedDB gereset! Reload de pagina.');
+    } catch (error) {
+        console.error('❌ Failed to reset IndexedDB:', error);
+    }
+}
+
 // Maak beschikbaar in console
 window.clearAllCaches = clearAllCaches;
+window.resetOfflineDB = resetOfflineDB;
