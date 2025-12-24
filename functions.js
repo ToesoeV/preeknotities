@@ -1181,8 +1181,6 @@ function displaySermons(sermons, container) {
         const occasion = OCCASIONS.find(o => o.id === occasionId);
         const occasionName = occasion ? occasion.name : 'Reguliere dienst';
         
-        console.log('Debug occasion:', { sermon_id: sermon.id, occasion_id: sermon.occasion_id, parsed_id: occasionId, found_occasion: occasion });
-        
         const card = document.createElement('div');
         card.className = 'sermon-card';
         card.onclick = () => showSermonDetails(sermon.id);
