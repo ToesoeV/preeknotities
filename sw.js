@@ -1,6 +1,5 @@
 const CACHE_NAME = 'preeknotities-v1';
 const urlsToCache = [
-  '/',
   '/index.html',
   '/styles.css',
   '/functions.js',
@@ -13,8 +12,14 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Cache opened');
-        return cache.addAll(urlsToCache);
+        // Add files one by one to avoid failures breaking everything
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => console.warn('Failed to cache:', url, err))
+          )
+        );
       })
+      .then(() => console.log('Service Worker installed'))
   );
   self.skipWaiting();
 });
@@ -38,21 +43,30 @@ self.addEventListener('activate', event => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  
   // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
+  if (url.origin !== location.origin) {
     return;
   }
 
-  // Network-first strategy for API calls
-  if (event.request.url.includes('/api/')) {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Network-first strategy for API calls (including Cloudflare Functions)
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/functions/')) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // Clone the response before caching
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
+          // Only cache successful responses
+          if (response.ok) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
           return response;
         })
         .catch(() => {
@@ -67,20 +81,29 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request).then(fetchResponse => {
-          // Cache the new resource
-          return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, fetchResponse.clone());
-            return fetchResponse;
-          });
-        });
-      })
-      .catch(() => {
-        // Optionally return a custom offline page
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
+        if (response) {
+          return response;
         }
+        
+        // Fetch from network and cache
+        return fetch(event.request)
+          .then(fetchResponse => {
+            // Only cache successful responses for static assets
+            if (fetchResponse.ok && fetchResponse.type === 'basic') {
+              const responseToCache = fetchResponse.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+            }
+            return fetchResponse;
+          })
+          .catch(error => {
+            // Return offline page for navigation requests
+            if (event.request.mode === 'navigate') {
+              return caches.match('/index.html');
+            }
+            throw error;
+          });
       })
   );
 });
