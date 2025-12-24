@@ -907,13 +907,12 @@ async function handleSermonSubmit(e) {
             sermon_date: document.getElementById('sermon-date').value,
             core_text: coreTextReference,
             core_text_url: coreTextUrl,
-            occasion_id: (() => {
-                const occasionValue = document.getElementById('occasion').value;
-                console.log('Form submission - occasion dropdown value:', occasionValue);
-                return occasionValue || 16; // Default to "Reguliere dienst"
-            })()
+            occasion_id: document.getElementById('occasion').value || 16 // Default to "Reguliere dienst"
         };
 
+        // Debug: Log exactly what we're sending to the API
+        console.log('📤 Sending to API:', JSON.stringify(sermonData, null, 2));
+        
         // Verzamel passages
         const passages = [];
         document.querySelectorAll('.passage-entry').forEach((entry) => {
@@ -990,6 +989,15 @@ async function handleSermonSubmit(e) {
 
         clearTimeout(timeoutId);
         const result = await response.json();
+
+        // Debug: Compare what we sent vs what was saved
+        console.log('📥 API Response:', JSON.stringify(result, null, 2));
+        if (result.sermon && result.sermon.occasion_id) {
+            console.log(`🔍 Occasion ID comparison:
+                Sent: ${payload.sermon.occasion_id}
+                Saved: ${result.sermon.occasion_id}
+                Match: ${payload.sermon.occasion_id == result.sermon.occasion_id ? '✅' : '❌'}`);
+        }
 
         if (result.error) {
             throw new Error(result.error);
