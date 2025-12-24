@@ -10,8 +10,8 @@ let passageCounter = 1;
 
 // ===== INITIALISATIE =====
 document.addEventListener('DOMContentLoaded', function() {
-    loadBibleBooks();
-    loadOccasions();
+    populateBibleBookSelects(); // Gebruik statische data
+    populateOccasionSelects(); // Gebruik statische data
     setupEventListeners();
     setTodayDate();
     displayUserInfo();
@@ -150,32 +150,16 @@ function showTab(tabName) {
     }
 }
 
-// ===== BIJBELBOEKEN LADEN =====
-async function loadBibleBooks() {
-    try {
-        const response = await fetch(`${DB_CONFIG.apiEndpoint}/bible-books`);
-        const books = await response.json();
-        
-        if (books.error) {
-            console.error('Error loading bible books:', books.error);
-            return;
-        }
-        
-        populateBibleBookSelects(books);
-    } catch (error) {
-        console.error('Error loading bible books:', error);
-    }
-}
-
-function populateBibleBookSelects(books) {
+// ===== BIJBELBOEKEN EN GELEGENHEDEN (Statische Data) =====
+function populateBibleBookSelects() {
     const selects = document.querySelectorAll('.bible-book');
     
     selects.forEach(select => {
         select.innerHTML = '<option value="">-- Selecteer boek --</option>';
         
         // Groepeer per testament
-        const otBooks = books.filter(b => b.testament === 'OT');
-        const ntBooks = books.filter(b => b.testament === 'NT');
+        const otBooks = BIBLE_BOOKS.filter(b => b.testament === 'OT');
+        const ntBooks = BIBLE_BOOKS.filter(b => b.testament === 'NT');
 
         if (otBooks.length > 0) {
             const otGroup = document.createElement('optgroup');
@@ -184,7 +168,6 @@ function populateBibleBookSelects(books) {
                 const option = document.createElement('option');
                 option.value = book.id;
                 option.textContent = book.name;
-                option.dataset.chapters = book.total_chapters;
                 otGroup.appendChild(option);
             });
             select.appendChild(otGroup);
@@ -197,7 +180,6 @@ function populateBibleBookSelects(books) {
                 const option = document.createElement('option');
                 option.value = book.id;
                 option.textContent = book.name;
-                option.dataset.chapters = book.total_chapters;
                 ntGroup.appendChild(option);
             });
             select.appendChild(ntGroup);
@@ -205,24 +187,7 @@ function populateBibleBookSelects(books) {
     });
 }
 
-// ===== GELEGENHEDEN LADEN =====
-async function loadOccasions() {
-    try {
-        const response = await fetch(`${DB_CONFIG.apiEndpoint}/occasions`);
-        const occasions = await response.json();
-        
-        if (occasions.error) {
-            console.error('Error loading occasions:', occasions.error);
-            return;
-        }
-        
-        populateOccasionSelects(occasions);
-    } catch (error) {
-        console.error('Error loading occasions:', error);
-    }
-}
-
-function populateOccasionSelects(occasions) {
+function populateOccasionSelects() {
     const selects = ['occasion', 'filter-occasion'];
     
     selects.forEach(selectId => {
@@ -235,7 +200,7 @@ function populateOccasionSelects(occasions) {
             select.appendChild(defaultOption.cloneNode(true));
         }
 
-        occasions.forEach(occ => {
+        OCCASIONS.forEach(occ => {
             const option = document.createElement('option');
             option.value = occ.id;
             option.textContent = occ.name;
@@ -298,7 +263,7 @@ function addPassageEntry() {
     `;
     
     container.insertAdjacentHTML('beforeend', passageHTML);
-    loadBibleBooks(); // Reload voor nieuwe select
+    populateBibleBookSelects(); // Populate nieuwe select
 }
 
 function removePassage(passageId) {

@@ -1,7 +1,8 @@
-const CACHE_NAME = 'preeknotities-v3';
+const CACHE_NAME = 'preeknotities-v4';
 const urlsToCache = [
   '/index.html',
   '/styles.css',
+  '/static-data.js',
   '/functions.js',
   '/offline-db.js',
   '/manifest.json',
