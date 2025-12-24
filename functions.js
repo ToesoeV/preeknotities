@@ -245,6 +245,32 @@ async function updatePendingCount() {
     }
 }
 
+// Check actual connection quality with timeout
+async function checkConnectionQuality(timeout = 5000) {
+    if (!navigator.onLine) {
+        return false;
+    }
+    
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        // Test actual connectivity by pinging our API
+        const response = await fetch('/api/user-info', {
+            method: 'GET',
+            signal: controller.signal,
+            cache: 'no-store'
+        });
+        
+        clearTimeout(timeoutId);
+        return response.ok;
+    } catch (error) {
+        // Timeout, network error, or other issue
+        console.log('Connection quality check failed:', error.message);
+        return false;
+    }
+}
+
 async function checkAndSyncPending(isRetry = false) {
     if (!navigator.onLine) {
         console.log('📱 Offline - sync uitgesteld');
