@@ -116,16 +116,6 @@ function generateBibleUrl(bookId, chapterStart, verseStart, chapterEnd, verseEnd
         url += `.${verseStart}`;
     }
     
-    // Voeg bereik toe als end chapter/verse verschillen van start
-    if (chapterEnd && chapterEnd !== chapterStart) {
-        url += `-${chapterEnd}`;
-        if (verseEnd) {
-            url += `.${verseEnd}`;
-        }
-    } else if (verseEnd && verseEnd !== verseStart && verseStart) {
-        url += `-${verseEnd}`;
-    }
-    
     url += '.HSV';
     return url;
 }
