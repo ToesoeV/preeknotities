@@ -10,6 +10,8 @@ let passageCounter = 1;
 
 // ===== INITIALISATIE =====
 document.addEventListener('DOMContentLoaded', function() {
+    initializeTheme();
+    initializeToastContainer();
     populateBibleBookSelects(); // Gebruik statische data
     populateOccasionSelects(); // Gebruik statische data
     setupEventListeners();
@@ -26,6 +28,125 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function setupEventListeners() {
     document.getElementById('sermon-form').addEventListener('submit', handleSermonSubmit);
+    
+    // Theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+function handleKeyboardShortcuts(e) {
+    // Ctrl/Cmd + K = Toggle theme
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        toggleTheme();
+        showToast('Thema gewisseld', 'info', 1500);
+    }
+    
+    // Ctrl/Cmd + S = Save form (if on add-sermon tab)
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        const addSermonTab = document.getElementById('add-sermon');
+        if (addSermonTab && addSermonTab.classList.contains('active')) {
+            e.preventDefault();
+            document.getElementById('sermon-form').dispatchEvent(new Event('submit'));
+        }
+    }
+    
+    // Escape = Close modal
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('sermon-modal');
+        if (modal && modal.classList.contains('active')) {
+            closeModal();
+        }
+    }
+}
+
+// ===== THEME MANAGEMENT =====
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+    
+    // Update manifest theme-color
+    const metaThemeColor = document.querySelector('meta[name=\"theme-color\"]');
+    if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', newTheme === 'dark' ? '#1e293b' : '#2563eb');
+    }
+}
+
+function updateThemeIcon(theme) {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+        themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+}
+
+// ===== TOAST NOTIFICATIONS =====
+function initializeToastContainer() {
+    if (!document.querySelector('.toast-container')) {
+        const container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+}
+
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.querySelector('.toast-container');
+    if (!container) return;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <div class="toast-content">
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" aria-label="Close">×</button>
+        ${duration > 0 ? '<div class="toast-progress"></div>' : ''}
+    `;
+    
+    container.appendChild(toast);
+    
+    // Close button
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        removeToast(toast);
+    });
+    
+    // Auto dismiss
+    if (duration > 0) {
+        setTimeout(() => {
+            removeToast(toast);
+        }, duration);
+    }
+}
+
+function removeToast(toast) {
+    toast.classList.add('removing');
+    setTimeout(() => {
+        toast.remove();
+    }, 300);
 }
 
 // ===== ONLINE/OFFLINE HANDLERS =====
@@ -45,12 +166,14 @@ function updateOnlineStatus() {
 function handleOnline() {
     console.log('🌐 Online - controleer pending sermons...');
     updateOnlineStatus();
+    showToast('Je bent weer online! Synchroniseren...', 'success', 2000);
     checkAndSyncPending();
 }
 
 function handleOffline() {
     console.log('📱 Offline mode');
     updateOnlineStatus();
+    showToast('Je bent offline. Wijzigingen worden lokaal opgeslagen.', 'warning', 3000);
 }
 
 async function updatePendingCount() {
@@ -121,6 +244,7 @@ async function checkAndSyncPending() {
         // Toon melding als er iets gesynchroniseerd is
         if (syncCount > 0) {
             console.log(`✅ ${syncCount} preek${syncCount > 1 ? 'en' : ''} gesynchroniseerd`);
+            showToast(`${syncCount} preek${syncCount > 1 ? 'en' : ''} succesvol gesynchroniseerd`, 'success');
         }
         
         // Refresh sermon list if we're on that tab
@@ -417,10 +541,17 @@ async function handleSermonSubmit(e) {
             messageDiv.textContent = '✓ Preek succesvol opgeslagen!';
             messageDiv.style.display = 'block';
             
+            // Add success animation
+            messageDiv.style.animation = 'slideInDown 0.4s ease';
+            
             setTimeout(() => {
-                resetForm();
-                messageDiv.style.display = 'none';
-            }, 2000);
+                messageDiv.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    resetForm();
+                    messageDiv.style.display = 'none';
+                    messageDiv.style.animation = '';
+                }, 300);
+            }, 2500);
         }
 
     } catch (error) {
@@ -509,14 +640,19 @@ async function loadSermons() {
     // Check of we offline zijn
     if (!navigator.onLine) {
         listDiv.innerHTML = `
-            <div class="message" style="background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+            <div class="message" style="background-color: var(--warning-color); color: #92400e; border-left: 4px solid #f59e0b;">
                 📱 Offline - preken bekijken is alleen beschikbaar wanneer je online bent
             </div>
         `;
         return;
     }
     
-    listDiv.innerHTML = '<div class="loading">Preken laden</div>';
+    // Show skeleton loading
+    listDiv.innerHTML = `
+        <div class="skeleton sermon-skeleton"></div>
+        <div class="skeleton sermon-skeleton"></div>
+        <div class="skeleton sermon-skeleton"></div>
+    `;
 
     try {
         const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons`);
@@ -526,17 +662,20 @@ async function loadSermons() {
             throw new Error(sermons.error);
         }
 
+        // Small delay to show loading state (prevents flash)
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
         displaySermons(sermons, listDiv);
         populateFilterOptions(sermons);
     } catch (error) {
         if (!navigator.onLine || error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
             listDiv.innerHTML = `
-                <div class="message" style="background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                <div class="message" style="background-color: var(--warning-color); color: #92400e; border-left: 4px solid #f59e0b;">
                     📱 Offline - preken bekijken is alleen beschikbaar wanneer je online bent
                 </div>
             `;
         } else {
-            listDiv.innerHTML = `<div class="message error">Fout bij laden:  ${error.message}</div>`;
+            listDiv.innerHTML = `<div class="message error">Fout bij laden: ${error.message}</div>`;
         }
     }
 }
@@ -600,7 +739,6 @@ function populateFilterOptions(sermons) {
 }
 
 // ===== ZOEKEN =====
-// ===== ZOEKEN =====
 async function searchSermons() {
     const searchTerm = document.getElementById('search-input').value;
     const resultsDiv = document.getElementById('search-results');
@@ -613,28 +751,34 @@ async function searchSermons() {
     // Check of we offline zijn
     if (!navigator.onLine) {
         resultsDiv.innerHTML = `
-            <div class="message" style="background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+            <div class="message" style="background-color: var(--warning-color); color: #92400e; border-left: 4px solid #f59e0b;">
                 📱 Offline - zoeken is alleen beschikbaar wanneer je online bent
             </div>
         `;
         return;
     }
 
-    resultsDiv.innerHTML = '<div class="loading">Zoeken</div>';
+    resultsDiv.innerHTML = `
+        <div class="skeleton sermon-skeleton"></div>
+        <div class="skeleton sermon-skeleton"></div>
+    `;
 
     try {
-        const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons? search=${encodeURIComponent(searchTerm)}`);
+        const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons?search=${encodeURIComponent(searchTerm)}`);
         const results = await response.json();
         
         if (results.error) {
             throw new Error(results.error);
         }
         
+        // Small delay to show loading state
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
         displaySermons(results, resultsDiv);
     } catch (error) {
         if (!navigator.onLine || error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
             resultsDiv.innerHTML = `
-                <div class="message" style="background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                <div class="message" style="background-color: var(--warning-color); color: #92400e; border-left: 4px solid #f59e0b;">
                     📱 Offline - zoeken is alleen beschikbaar wanneer je online bent
                 </div>
             `;

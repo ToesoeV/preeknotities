@@ -24,6 +24,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Wissel tussen licht en donker thema">
+        🌙
+    </button>
+
     <div class="container">
         <header>
             <h1>📖 Preeknotities Beheer</h1>
@@ -257,6 +262,8 @@
     <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
+            let deferredPrompt;
+            
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
@@ -272,9 +279,7 @@
                             
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'activated') {
-                                    console.log('✅ Nieuwe Service Worker actief - reload page');
-                                    // Auto-reload als nieuwe SW actief is
-                                    window.location.reload();
+                                    console.log('✅ Nieuwe Service Worker actief');
                                 }
                             });
                         });
@@ -292,14 +297,57 @@
             });
             
             // Show install prompt when available
-            let deferredPrompt;
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
                 console.log('💾 PWA installatie beschikbaar');
                 
-                // Optionally show custom install button
-                // You could add a banner or button to trigger deferredPrompt.prompt()
+                // Show custom install prompt
+                showInstallPrompt(deferredPrompt);
+            });
+            
+            // Function to show install prompt
+            function showInstallPrompt(prompt) {
+                // Don't show if already dismissed
+                if (localStorage.getItem('pwa-install-dismissed')) {
+                    return;
+                }
+                
+                const installDiv = document.createElement('div');
+                installDiv.className = 'install-prompt';
+                installDiv.innerHTML = `
+                    <h4>📱 Installeer de app</h4>
+                    <p>Installeer Preeknotities voor snellere toegang en offline gebruik!</p>
+                    <div class="install-prompt-buttons">
+                        <button class="install-btn">Installeren</button>
+                        <button class="dismiss-btn">Niet nu</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(installDiv);
+                
+                // Install button
+                installDiv.querySelector('.install-btn').addEventListener('click', async () => {
+                    installDiv.remove();
+                    if (prompt) {
+                        prompt.prompt();
+                        const { outcome } = await prompt.userChoice;
+                        console.log(`User response to install prompt: ${outcome}`);
+                        deferredPrompt = null;
+                    }
+                });
+                
+                // Dismiss button
+                installDiv.querySelector('.dismiss-btn').addEventListener('click', () => {
+                    installDiv.remove();
+                    localStorage.setItem('pwa-install-dismissed', 'true');
+                });
+            }
+            
+            // Listen for successful installation
+            window.addEventListener('appinstalled', () => {
+                console.log('✅ PWA succesvol geïnstalleerd');
+                deferredPrompt = null;
             });
         } else {
             console.warn('⚠️ Service Workers worden niet ondersteund in deze browser');

@@ -4,13 +4,28 @@
     --success-color: #10b981;
     --danger-color: #ef4444;
     --warning-color: #f59e0b;
-    --background:  #f8fafc;
+    --background: #f8fafc;
     --surface: #ffffff;
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --border: #e2e8f0;
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+[data-theme="dark"] {
+    --primary-color: #3b82f6;
+    --secondary-color: #94a3b8;
+    --success-color: #34d399;
+    --danger-color: #f87171;
+    --warning-color: #fbbf24;
+    --background: #0f172a;
+    --surface: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border: #334155;
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
 }
 
 * {
@@ -20,10 +35,11 @@
 }
 
 body {
-    font-family:  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: var(--background);
     color: var(--text-primary);
     line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
@@ -105,6 +121,27 @@ header p {
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
 .tab-content h2 {
     margin-bottom: 25px;
     color: var(--text-primary);
@@ -146,9 +183,11 @@ header p {
     padding: 12px 16px;
     border: 2px solid var(--border);
     border-radius: 8px;
-    font-size:  1rem;
+    font-size: 1rem;
     font-family: inherit;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
+    background-color: var(--surface);
+    color: var(--text-primary);
 }
 
 .form-group input:focus,
@@ -156,6 +195,19 @@ header p {
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group input:invalid:not(:placeholder-shown),
+.form-group select:invalid:not(:placeholder-shown),
+.form-group textarea:invalid:not(:placeholder-shown) {
+    border-color: var(--danger-color);
+}
+
+.form-group input:valid:not(:placeholder-shown),
+.form-group select:valid:not(:placeholder-shown),
+.form-group textarea:valid:not(:placeholder-shown) {
+    border-color: var(--success-color);
 }
 
 .form-row {
@@ -186,6 +238,30 @@ header p {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before,
+.btn-secondary::before,
+.btn-danger::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:active::before,
+.btn-secondary:active::before,
+.btn-danger:active::before {
+    width: 300px;
+    height: 300px;
 }
 
 .btn-primary {
@@ -199,6 +275,10 @@ header p {
     box-shadow: var(--shadow-lg);
 }
 
+.btn-primary:active {
+    transform: translateY(0);
+}
+
 .btn-secondary {
     background-color: var(--secondary-color);
     color: white;
@@ -206,6 +286,11 @@ header p {
 
 .btn-secondary:hover {
     background-color: #475569;
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
 }
 
 .btn-danger {
@@ -215,6 +300,11 @@ header p {
 
 .btn-danger:hover {
     background-color: #dc2626;
+    transform: translateY(-1px);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
 }
 
 .button-group {
@@ -558,9 +648,29 @@ header p {
     color: var(--text-secondary);
 }
 
+.empty-state::before {
+    content: '📚';
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 20px;
+    opacity: 0.5;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
 .empty-state h3 {
     margin-bottom: 10px;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+}
+
+.empty-state p {
     color: var(--text-secondary);
+    font-size: 1rem;
 }
 
 /* Offline Status */
@@ -593,4 +703,254 @@ header p {
     font-size: 0.9rem;
     font-weight: 600;
     text-align: center;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 15px 25px -5px rgb(0 0 0 / 0.3);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Smooth transitions for theme-able elements */
+.tab-content,
+.sermon-card,
+.stat-card,
+.modal-content,
+.passage-entry,
+.point-entry,
+header,
+.form-group input,
+.form-group select,
+.form-group textarea {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Install Prompt */
+.install-prompt {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    background: var(--surface);
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--primary-color);
+    max-width: 300px;
+    z-index: 998;
+    animation: slideInRight 0.4s ease;
+}
+
+.install-prompt h4 {
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.install-prompt p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.install-prompt-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.install-prompt button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.install-prompt .install-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.install-prompt .install-btn:hover {
+    background: #1d4ed8;
+}
+
+.install-prompt .dismiss-btn {
+    background: var(--border);
+    color: var(--text-secondary);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Skeleton Loading */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--border) 25%,
+        var(--surface) 50%,
+        var(--border) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.sermon-skeleton {
+    height: 150px;
+    margin-bottom: 15px;
+}
+
+/* Enhanced scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--surface);
+    color: var(--text-primary);
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--primary-color);
+    min-width: 300px;
+    max-width: 400px;
+    animation: slideInRight 0.3s ease;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast.success {
+    border-left-color: var(--success-color);
+}
+
+.toast.error {
+    border-left-color: var(--danger-color);
+}
+
+.toast.warning {
+    border-left-color: var(--warning-color);
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.toast-message {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.toast-close:hover {
+    background-color: var(--border);
+}
+
+@keyframes slideOut {
+    to {
+        transform: translateX(500px);
+        opacity: 0;
+    }
+}
+
+.toast.removing {
+    animation: slideOut 0.3s ease forwards;
+}
+
+/* Progress bar for auto-dismiss */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 0 0 0 8px;
+    animation: progress 3s linear;
+}
+
+@keyframes progress {
+    from { width: 100%; }
+    to { width: 0%; }
 }

@@ -1,7 +1,7 @@
 {
   "name": "Preeknotities Beheer",
   "short_name": "Preeknotities",
-  "description": "Beheer je preeknotities en bijbelgedeelten",
+  "description": "Beheer je preeknotities en bijbelgedeelten - Offline eerst PWA",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -22,6 +22,23 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["productivity", "education"],
-  "screenshots": []
+  "categories": ["productivity", "education", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Nieuwe Preek",
+      "short_name": "Nieuwe Preek",
+      "description": "Voeg een nieuwe preek toe",
+      "url": "/?tab=add-sermon",
+      "icons": [{ "src": "/icons/logo.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Preken Bekijken",
+      "short_name": "Bekijken",
+      "description": "Bekijk je opgeslagen preken",
+      "url": "/?tab=view-sermons",
+      "icons": [{ "src": "/icons/logo.svg", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }

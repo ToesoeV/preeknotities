@@ -1,5 +1,6 @@
-const CACHE_NAME = 'preeknotities-v6';
+const CACHE_NAME = 'preeknotities-v7';
 const urlsToCache = [
+  '/',
   '/index.html',
   '/styles.css',
   '/static-data.js',
@@ -11,37 +12,43 @@ const urlsToCache = [
 
 // Install event - cache resources
 self.addEventListener('install', event => {
+  console.log('🔧 Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache opened');
+        console.log('📦 Cache opened');
         // Add files one by one to avoid failures breaking everything
         return Promise.allSettled(
           urlsToCache.map(url => 
-            cache.add(url).catch(err => console.warn('Failed to cache:', url, err))
+            cache.add(url).catch(err => console.warn('⚠️ Failed to cache:', url, err))
           )
         );
       })
-      .then(() => console.log('Service Worker installed'))
+      .then(() => {
+        console.log('✅ Service Worker installed');
+        return self.skipWaiting(); // Activate immediately
+      })
   );
-  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
+  console.log('🔄 Service Worker activating...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
+            console.log('🗑️ Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      console.log('✅ Service Worker activated');
+      return self.clients.claim(); // Take control immediately
     })
   );
-  self.clients.claim();
 });
 
 // Fetch event - serve from cache, fallback to network
