@@ -1,6 +1,7 @@
-// DEPRECATED: Deze API endpoint is niet meer nodig
-// Bible books data is nu statisch in static-data.js
-// Behouden voor backwards compatibility
+// ===== DEPRECATED AND NOT USED =====
+// Bible books data is now FULLY LOCAL in static-data.js
+// This endpoint is kept for backwards compatibility only
+// The frontend NEVER calls this - it uses local BIBLE_BOOKS array
 
 export async function onRequestGet(context) {
   try {

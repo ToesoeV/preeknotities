@@ -1,5 +1,7 @@
-// Statische data voor bijbelboeken en gelegenheden
-// Deze data verandert niet en hoeft niet via API opgehaald te worden
+// ===== STATISCHE DATA VOOR BIJBELBOEKEN EN GELEGENHEDEN =====
+// Deze data is ALTIJD lokaal beschikbaar en werkt volledig offline
+// Geen API calls nodig - dit is de authoritative source
+// Gebruikt door: functions.js voor dropdown menu's
 
 const BIBLE_BOOKS = [
     // Oude Testament
@@ -90,3 +92,9 @@ const OCCASIONS = [
     { id: 14, name: 'Eeuwigheidszondag' },
     { id: 15, name: 'Advent' }
 ];
+
+// ===== BELANGRIJK =====
+// Deze arrays worden DIRECT gebruikt door de app - geen API calls!
+// Bible books: 66 boeken (39 OT + 27 NT)
+// Occasions: 15 standaard kerkelijke gelegenheden
+// IDs moeten overeenkomen met database voor synchronisatie

@@ -15,6 +15,7 @@ Een moderne, offline-first Progressive Web App (PWA) voor het beheren van preekn
 - **Installeerbaar** - Installeer als native app op elk apparaat
 - **Background Sync** - Automatische synchronisatie wanneer online
 - **Service Worker** - Snelle loading met intelligente caching
+- **Local Static Data** - Bijbelboeken en gelegenheden altijd beschikbaar (geen API nodig)
 
 ### 🔧 Functionaliteit
 - Preken toevoegen met bijbelgedeelten en punten
@@ -67,11 +68,18 @@ Een moderne, offline-first Progressive Web App (PWA) voor het beheren van preekn
 ├── index.html          # Hoofd HTML
 ├── styles.css          # Styling met CSS variabelen voor theming
 ├── functions.js        # App logica en UI interacties
-├── static-data.js      # Statische bijbel/gelegenheid data
+├── static-data.js      # Statische bijbel/gelegenheid data (ALTIJD lokaal!)
 ├── offline-db.js       # IndexedDB wrapper
 ├── sw.js              # Service Worker voor caching
 ├── manifest.json      # PWA manifest
 └── functions/api/     # Cloudflare Workers API routes
+    ├── bible-books.js  # [DEPRECATED - niet gebruikt]
+    ├── occasions.js    # [DEPRECATED - niet gebruikt]
+    ├── user-info.js
+    ├── stats.js
+    └── sermons/
+        ├── index.js
+        └── [id].js
 ```
 
 ## 🎯 Gebruik

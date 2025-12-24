@@ -12,8 +12,11 @@ let passageCounter = 1;
 document.addEventListener('DOMContentLoaded', function() {
     initializeTheme();
     initializeToastContainer();
-    populateBibleBookSelects(); // Gebruik statische data
-    populateOccasionSelects(); // Gebruik statische data
+    
+    // Laad LOKALE statische data (werkt altijd, ook offline!)
+    populateBibleBookSelects(); // Gebruikt BIBLE_BOOKS uit static-data.js
+    populateOccasionSelects(); // Gebruikt OCCASIONS uit static-data.js
+    
     setupEventListeners();
     setTodayDate();
     displayUserInfo();
@@ -284,14 +287,17 @@ function showTab(tabName) {
     }
 }
 
-// ===== BIJBELBOEKEN EN GELEGENHEDEN (Statische Data) =====
+// ===== BIJBELBOEKEN EN GELEGENHEDEN (Lokale Statische Data) =====
+// Deze functies gebruiken ALTIJD de lokale data uit static-data.js
+// Geen API calls nodig - werkt volledig offline!
+
 function populateBibleBookSelects() {
     const selects = document.querySelectorAll('.bible-book');
     
     selects.forEach(select => {
         select.innerHTML = '<option value="">-- Selecteer boek --</option>';
         
-        // Groepeer per testament
+        // Groepeer per testament uit lokale data
         const otBooks = BIBLE_BOOKS.filter(b => b.testament === 'OT');
         const ntBooks = BIBLE_BOOKS.filter(b => b.testament === 'NT');
 
@@ -326,7 +332,7 @@ function populateOccasionSelects() {
     
     selects.forEach(selectId => {
         const select = document.getElementById(selectId);
-        if (! select) return;
+        if (!select) return;
 
         const defaultOption = select.querySelector('option[value=""]');
         select.innerHTML = '';
@@ -334,6 +340,7 @@ function populateOccasionSelects() {
             select.appendChild(defaultOption.cloneNode(true));
         }
 
+        // Gebruik lokale OCCASIONS data - geen API nodig!
         OCCASIONS.forEach(occ => {
             const option = document.createElement('option');
             option.value = occ.id;
