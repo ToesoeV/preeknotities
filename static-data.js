@@ -77,29 +77,9 @@ const BIBLE_BOOKS = [
     { id: 66, name: 'Openbaring', testament: 'NT', book_order: 66, abbr: 'rev' }
 ];
 
-const OCCASIONS = [
-    { id: 1, name: 'Avondmaal' },
-    { id: 2, name: 'Doop' },
-    { id: 3, name: 'Belijdenis' },
-    { id: 4, name: 'Trouwdienst' },
-    { id: 5, name: 'Rouwdienst' },
-    { id: 6, name: 'Kerst' },
-    { id: 7, name: 'Pasen' },
-    { id: 8, name: 'Pinksteren' },
-    { id: 9, name: 'Hemelvaart' },
-    { id: 10, name: 'Nieuwjaar' },
-    { id: 11, name: 'Goede Vrijdag' },
-    { id: 12, name: 'Biddag' },
-    { id: 13, name: 'Dankdag' },
-    { id: 14, name: 'Eeuwigheidszondag' },
-    { id: 15, name: 'Advent' },
-    { id: 16, name: 'Reguliere dienst' }
-];
-
 // ===== BELANGRIJK =====
-// Deze arrays worden DIRECT gebruikt door de app - geen API calls!
+// Deze array wordt DIRECT gebruikt door de app - geen API calls!
 // Bible books: 66 boeken (39 OT + 27 NT)
-// Occasions: 15 standaard kerkelijke gelegenheden
 // IDs moeten overeenkomen met database voor synchronisatie
 
 // ===== HELPER FUNCTIES =====

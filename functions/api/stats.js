@@ -22,20 +22,11 @@ export async function onRequestGet(context) {
       'SELECT COUNT(*) as count FROM sermons WHERE user_id = ? AND strftime("%Y", sermon_date) = ?'
     ).bind(userEmail, thisYear. toString()).first();
     
-    const { results: preacherStats } = await context. env.DB.prepare(
-      'SELECT preacher, COUNT(*) as count FROM sermons WHERE user_id = ?  GROUP BY preacher ORDER BY count DESC'
+    const { results: preacherStats } = await context.env.DB.prepare(
+      'SELECT preacher, COUNT(*) as count FROM sermons WHERE user_id = ? GROUP BY preacher ORDER BY count DESC'
     ).bind(userEmail).all();
     
-    const { results: occasionStats } = await context.env.DB.prepare(
-      `SELECT COALESCE(o.name, "Geen gelegenheid") as name, COUNT(s.id) as count 
-       FROM sermons s 
-       LEFT JOIN occasions o ON s.occasion_id = o.id 
-       WHERE s.user_id = ?  
-       GROUP BY o.name 
-       ORDER BY count DESC`
-    ).bind(userEmail).all();
-    
-    const { results: bookStats } = await context.env. DB.prepare(
+    const { results: bookStats } = await context.env.DB.prepare(
       `SELECT b.name, COUNT(sp.id) as count 
        FROM sermon_passages sp 
        JOIN sermons s ON sp.sermon_id = s.id 
@@ -47,11 +38,10 @@ export async function onRequestGet(context) {
     ).bind(userEmail).all();
 
     return Response.json({
-      totalSermons:  totalSermons.count,
+      totalSermons: totalSermons.count,
       totalPreachers: totalPreachers.count,
       sermonsThisYear: sermonsThisYear.count,
       preacherStats,
-      occasionStats,
       bookStats
     });
   } catch (error) {

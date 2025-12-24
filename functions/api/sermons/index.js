@@ -17,9 +17,8 @@ export async function onRequestGet(context) {
     
     // Filter op user_id - gebruiker ziet ALLEEN eigen preken
     let query = `
-      SELECT s.*, o.name as occasion_name 
+      SELECT s.* 
       FROM sermons s 
-      LEFT JOIN occasions o ON s. occasion_id = o.id 
       WHERE s.user_id = ? 
     `;
     const params = [userEmail];
@@ -47,17 +46,16 @@ export async function onRequestPost(context) {
     const data = await context.request.json();
     
     // Voeg user_id toe bij INSERT
-    const sermonResult = await context.env.DB. prepare(
+    const sermonResult = await context.env.DB.prepare(
       `INSERT INTO sermons 
-       (user_id, location, preacher, sermon_date, core_text, occasion_id) 
-       VALUES (?, ?, ?, ?, ?, ?)`
+       (user_id, location, preacher, sermon_date, core_text) 
+       VALUES (?, ?, ?, ?, ?)`
     ).bind(
       userEmail,  // ← USER ID!  
-      data.sermon. location,
-      data.sermon. preacher,
+      data.sermon.location,
+      data.sermon.preacher,
       data.sermon.sermon_date,
-      data.sermon.core_text,
-      data.sermon.occasion_id
+      data.sermon.core_text
     ).run();
 
     const sermonId = sermonResult.meta.last_row_id;

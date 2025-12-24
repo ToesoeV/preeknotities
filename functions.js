@@ -773,7 +773,9 @@ function displaySermons(sermons, container) {
     container.innerHTML = '';
     
     sermons.forEach(sermon => {
-        const occasionName = sermon.occasion_name || 'Regulier';
+        // Lookup occasion name from local OCCASIONS array
+        const occasion = OCCASIONS.find(o => o.id == sermon.occasion_id);
+        const occasionName = occasion ? occasion.name : 'Reguliere dienst';
         
         const card = document.createElement('div');
         card.className = 'sermon-card';
@@ -901,11 +903,15 @@ async function loadStatistics() {
         if (stats.preacherStats) {
             displayPreachersStatsFromAPI(stats.preacherStats, stats.totalSermons);
         }
-        if (stats.occasionStats) {
-            displayOccasionsStatsFromAPI(stats.occasionStats, stats.totalSermons);
-        }
         if (stats.bookStats) {
             displayBooksStatsFromAPI(stats.bookStats);
+        }
+        
+        // Load all sermons to calculate occasion stats locally
+        const sermonsResponse = await fetch(`${DB_CONFIG.apiEndpoint}/sermons`);
+        const sermons = await sermonsResponse.json();
+        if (!sermons.error && sermons.length > 0) {
+            displayOccasionsStatsFromAPI(sermons);
         }
 
     } catch (error) {
@@ -949,20 +955,37 @@ function displayPreachersStatsFromAPI(stats, total) {
     });
 }
 
-function displayOccasionsStatsFromAPI(stats, total) {
+function displayOccasionsStatsFromAPI(sermons) {
     const container = document.getElementById('occasions-stats');
     container.innerHTML = '';
     
-    if (! stats || stats.length === 0) {
+    if (!sermons || sermons.length === 0) {
         container.innerHTML = '<p>Nog geen data beschikbaar</p>';
         return;
     }
     
+    // Count occasions locally from sermon data
+    const occasionCounts = {};
+    sermons.forEach(sermon => {
+        const occasionId = sermon.occasion_id || 16; // Default to 'Reguliere dienst'
+        occasionCounts[occasionId] = (occasionCounts[occasionId] || 0) + 1;
+    });
+    
+    // Convert to array and sort by count
+    const stats = Object.entries(occasionCounts).map(([id, count]) => {
+        const occasion = OCCASIONS.find(o => o.id == id);
+        return {
+            name: occasion ? occasion.name : 'Reguliere dienst',
+            count: count
+        };
+    }).sort((a, b) => b.count - a.count);
+    
+    const total = sermons.length;
     stats.forEach(stat => {
         const percentage = total > 0 ? (stat.count / total * 100).toFixed(1) : 0;
         container.innerHTML += `
             <div class="stat-bar">
-                <span>${stat.name || 'Geen gelegenheid'}</span>
+                <span>${stat.name}</span>
                 <span><strong>${stat.count}</strong> preken</span>
             </div>
             <div class="stat-bar-fill" style="width: ${percentage}%"></div>
