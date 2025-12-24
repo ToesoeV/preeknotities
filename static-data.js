@@ -1,4 +1,6 @@
 // ===== STATISCHE DATA VOOR BIJBELBOEKEN EN GELEGENHEDEN =====
+// Version: 2.0.0 - Authoritative Source (geen API calls!)
+// Laatste update: 2025-12-23
 // Deze data is ALTIJD lokaal beschikbaar en werkt volledig offline
 // Geen API calls nodig - dit is de authoritative source
 // Gebruikt door: functions.js voor dropdown menu's

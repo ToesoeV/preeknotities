@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preeknotities Beheer</title>
+    <!-- App Version: 2.0.0 - Offline-First with Local Data -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <!-- PWA Meta Tags -->
     <meta name="description" content="Beheer je preeknotities en bijbelgedeelten">
     <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Preeknotities">
@@ -263,6 +268,15 @@
     <script>
         if ('serviceWorker' in navigator) {
             let deferredPrompt;
+            let refreshing = false;
+            
+            // Handle controller change (new SW activated)
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                console.log('🔄 Nieuwe Service Worker actief - herladen...');
+                window.location.reload();
+            });
             
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
@@ -272,14 +286,49 @@
                         // Force update check
                         registration.update();
                         
-                        // Check for updates
+                        // Check for updates every 5 minutes
+                        setInterval(() => {
+                            registration.update();
+                        }, 5 * 60 * 1000);
+                        
+                        // Listen for updates
                         registration.addEventListener('updatefound', () => {
-                            console.log('🔄 Service Worker update gevonden');
                             const newWorker = registration.installing;
+                            console.log('🔄 Service Worker update gevonden - nieuwe versie wordt geïnstalleerd...');
                             
                             newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'activated') {
-                                    console.log('✅ Nieuwe Service Worker actief');
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New SW installed, prompt user to refresh
+                                    console.log('✨ Nieuwe versie beschikbaar!');
+                                    
+                                    // Show update notification
+                                    const updateBanner = document.createElement('div');
+                                    updateBanner.style.cssText = `
+                                        position: fixed;
+                                        top: 0;
+                                        left: 0;
+                                        right: 0;
+                                        background: var(--primary-color);
+                                        color: white;
+                                        padding: 16px;
+                                        text-align: center;
+                                        z-index: 10000;
+                                        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                                    `;
+                                    updateBanner.innerHTML = `
+                                        <strong>🎉 Nieuwe versie beschikbaar!</strong>
+                                        <button onclick="window.location.reload()" style="
+                                            margin-left: 16px;
+                                            padding: 8px 16px;
+                                            background: white;
+                                            color: var(--primary-color);
+                                            border: none;
+                                            border-radius: 4px;
+                                            cursor: pointer;
+                                            font-weight: 600;
+                                        ">Nu updaten</button>
+                                    `;
+                                    document.body.prepend(updateBanner);
                                 }
                             });
                         });

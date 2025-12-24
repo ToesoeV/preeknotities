@@ -1,3 +1,8 @@
+// ===== PREEKNOTITIES APP - FUNCTIONS =====
+// Version: 2.0.0 - Offline-First met Lokale Data
+// Laatste update: 2025-12-23
+// Bible books en occasions worden NIET meer van API geladen!
+
 // ===== CONFIGURATIE =====
 const DB_CONFIG = {
     useMockData: false,  // Zet op FALSE voor productie! 
@@ -10,6 +15,10 @@ let passageCounter = 1;
 
 // ===== INITIALISATIE =====
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Preeknotities App v2.0.0 - Offline-First');
+    console.log('📚 Bible books:', BIBLE_BOOKS.length, 'boeken geladen vanuit lokale data');
+    console.log('🎯 Occasions:', OCCASIONS.length, 'gelegenheden geladen vanuit lokale data');
+    
     initializeTheme();
     initializeToastContainer();
     
@@ -1072,3 +1081,21 @@ window.onclick = function(event) {
         closeModal();
     }
 }
+
+// ===== DEBUG HELPERS =====
+// Force clear all caches (gebruik in console: clearAllCaches())
+async function clearAllCaches() {
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map(name => caches.delete(name)));
+    console.log('🗑️ All caches cleared!');
+    
+    // Unregister service worker
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map(reg => reg.unregister()));
+    console.log('🔄 Service worker unregistered!');
+    
+    console.log('✅ Reload de pagina om een verse versie te krijgen');
+}
+
+// Maak beschikbaar in console
+window.clearAllCaches = clearAllCaches;

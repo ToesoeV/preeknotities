@@ -1,4 +1,4 @@
-const CACHE_NAME = 'preeknotities-v7';
+const CACHE_NAME = 'preeknotities-v8';
 const urlsToCache = [
   '/',
   '/index.html',
