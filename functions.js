@@ -907,7 +907,11 @@ async function handleSermonSubmit(e) {
             sermon_date: document.getElementById('sermon-date').value,
             core_text: coreTextReference,
             core_text_url: coreTextUrl,
-            occasion_id: document.getElementById('occasion').value || 16 // Default to "Reguliere dienst"
+            occasion_id: (() => {
+                const occasionValue = document.getElementById('occasion').value;
+                console.log('Form submission - occasion dropdown value:', occasionValue);
+                return occasionValue || 16; // Default to "Reguliere dienst"
+            })()
         };
 
         // Verzamel passages
