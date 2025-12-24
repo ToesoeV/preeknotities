@@ -1,4 +1,4 @@
-const CACHE_NAME = 'preeknotities-v10';
+const CACHE_NAME = 'preeknotities-v11';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -130,8 +130,15 @@ async function syncPendingSermons() {
     
     console.log(`📤 ${pendingSermons.length} pending sermons gevonden`);
     
+    let syncCount = 0;
+    let failCount = 0;
+    
     for (const sermon of pendingSermons) {
       try {
+        // Add timeout to prevent hanging on poor connections
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+        
         const response = await fetch('/api/sermons', {
           method: 'POST',
           headers: {
@@ -141,14 +148,18 @@ async function syncPendingSermons() {
             sermon: sermon.sermon,
             passages: sermon.passages,
             points: sermon.points
-          })
+          }),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
             await deleteSyncedSermon(db, sermon.id);
             console.log(`✅ Preek ${sermon.id} gesynchroniseerd`);
+            syncCount++;
             
             // Notify gebruiker
             if (self.registration.showNotification) {
@@ -156,18 +167,47 @@ async function syncPendingSermons() {
                 body: 'Je offline preek is succesvol opgeslagen',
                 icon: '/icons/logo.svg',
                 badge: '/icons/logo.svg',
-                tag: 'sermon-synced'
+                tag: 'sermon-synced',
+                silent: true // Don't vibrate/sound on mobile
               });
             }
+          } else {
+            console.error(`❌ Preek ${sermon.id} rejected:`, result.error);
+            failCount++;
           }
+        } else {
+          console.error(`❌ Preek ${sermon.id} sync failed: HTTP ${response.status}`);
+          failCount++;
         }
       } catch (error) {
         console.error(`❌ Fout bij synchroniseren preek ${sermon.id}:`, error);
-        // Laat sermon in database staan voor volgende sync poging
+        failCount++;
+        
+        // Stop if timeout or connection lost
+        if (error.name === 'AbortError') {
+          console.log('⏱️ Sync timeout - stopping batch');
+          break;
+        }
       }
     }
+    
+    console.log(`📊 Sync complete: ${syncCount} success, ${failCount} failed`);
+    
+    // Notify client about results
+    if (syncCount > 0) {
+      const clients = await self.clients.matchAll();
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'SYNC_COMPLETE',
+          count: syncCount,
+          failed: failCount
+        });
+      });
+    }
+    
   } catch (error) {
     console.error('❌ Background sync error:', error);
+    throw error; // Let browser retry sync later
   }
 }
 

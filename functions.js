@@ -1,6 +1,7 @@
 // ===== PREEKNOTITIES APP - FUNCTIONS =====
-// Version: 2.0.0 - Offline-First met Lokale Data
-// Laatste update: 2025-12-23
+// Version: 2.2.0 - Hamburger Menu & Improved Text Editing
+// Laatste update: 2025-12-24
+// Service Worker: v11
 // Bible books en occasions worden NIET meer van API geladen!
 
 // ===== CONFIGURATIE =====
@@ -12,15 +13,19 @@ const DB_CONFIG = {
 let currentSermonId = null;
 let pointCounter = 0;
 let passageCounter = 1;
+let syncRetryCount = 0;
+const MAX_SYNC_RETRIES = 3;
 
 // ===== INITIALISATIE =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Preeknotities App v2.0.0 - Offline-First');
+    console.log('🚀 Preeknotities App v2.2.0 - Hamburger Menu & Improved Text Editing');
+    console.log('📱 Service Worker: v11');
     console.log('📚 Bible books:', BIBLE_BOOKS.length, 'boeken geladen vanuit lokale data');
     console.log('🎯 Occasions:', OCCASIONS.length, 'gelegenheden geladen vanuit lokale data');
     
     initializeTheme();
     initializeToastContainer();
+    initializeSidebar(); // Setup hamburger menu
     
     // Laad LOKALE statische data (werkt altijd, ook offline!)
     populateBibleBookSelects(); // Gebruikt BIBLE_BOOKS uit static-data.js
@@ -32,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
         setupPassageUrlAutoGeneration(firstPassage);
     }
     
+    // Setup core text auto-generation
+    setupCoreTextAutoGeneration();
+    
     setupEventListeners();
     setTodayDate();
     displayUserInfo();
@@ -42,6 +50,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen voor online/offline events
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    
+    // Listen for Service Worker sync messages
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data.type === 'SYNC_COMPLETE') {
+                console.log(`📬 Sync message: ${event.data.count} preken gesynchroniseerd`);
+                updatePendingCount();
+                
+                if (event.data.count > 0) {
+                    showToast(`✅ ${event.data.count} preek${event.data.count > 1 ? 'en' : ''} gesynchroniseerd`, 'success');
+                }
+                
+                // Refresh sermon list if visible
+                if (document.getElementById('view-sermons').classList.contains('active')) {
+                    loadSermons();
+                }
+            }
+        });
+    }
 });
 
 function setupEventListeners() {
@@ -203,10 +230,11 @@ async function updatePendingCount() {
         if (count > 0) {
             if (!badge) {
                 const header = document.querySelector('header p');
-                const badgeHTML = `<span id="pending-badge" class="pending-badge">${count} preek${count > 1 ? 'en' : ''} wacht op synchronisatie</span>`;
+                const badgeHTML = `<span id="pending-badge" class="pending-badge" title="${count} preek${count > 1 ? 'en' : ''} wacht${count === 1 ? '' : 'en'} op synchronisatie">📱 ${count} offline opgeslagen</span>`;
                 header.insertAdjacentHTML('afterend', badgeHTML);
             } else {
-                badge.textContent = `${count} preek${count > 1 ? 'en' : ''} wacht op synchronisatie`;
+                badge.textContent = `📱 ${count} offline opgeslagen`;
+                badge.title = `${count} preek${count > 1 ? 'en' : ''} wacht${count === 1 ? '' : 'en'} op synchronisatie`;
             }
         } else if (badge) {
             badge.remove();
@@ -217,9 +245,24 @@ async function updatePendingCount() {
     }
 }
 
-async function checkAndSyncPending() {
+async function checkAndSyncPending(isRetry = false) {
     if (!navigator.onLine) {
         console.log('📱 Offline - sync uitgesteld');
+        return;
+    }
+    
+    // Verify actual connection quality before attempting sync
+    const hasConnection = await checkConnectionQuality();
+    if (!hasConnection) {
+        console.log('📱 Geen echte verbinding - sync uitgesteld');
+        
+        // Schedule retry with exponential backoff
+        if (syncRetryCount < MAX_SYNC_RETRIES) {
+            const retryDelay = Math.min(1000 * Math.pow(2, syncRetryCount), 30000); // Max 30s
+            console.log(`⏱️ Retry sync in ${retryDelay / 1000}s...`);
+            syncRetryCount++;
+            setTimeout(() => checkAndSyncPending(true), retryDelay);
+        }
         return;
     }
     
@@ -227,14 +270,24 @@ async function checkAndSyncPending() {
         await offlineDB.init();
         const pendingSermons = await offlineDB.getPendingSermons();
         
-        if (pendingSermons.length === 0) return;
+        if (pendingSermons.length === 0) {
+            syncRetryCount = 0;
+            return;
+        }
         
         console.log(`📤 Synchroniseren ${pendingSermons.length} pending sermons...`);
+        if (!isRetry) {
+            showToast(`Synchroniseren van ${pendingSermons.length} preek${pendingSermons.length > 1 ? 'en' : ''}...`, 'info', 2000);
+        }
         
         let syncCount = 0;
+        let failCount = 0;
         
         for (const sermon of pendingSermons) {
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+                
                 const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons`, {
                     method: 'POST',
                     headers: {
@@ -244,20 +297,30 @@ async function checkAndSyncPending() {
                         sermon: sermon.sermon,
                         passages: sermon.passages,
                         points: sermon.points
-                    })
+                    }),
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
                 const result = await response.json();
                 
                 if (result.success) {
                     await offlineDB.deleteSynced(sermon.id);
                     console.log(`✅ Preek ${sermon.id} gesynchroniseerd`);
                     syncCount++;
+                } else {
+                    failCount++;
+                    console.error(`❌ Preek ${sermon.id} niet geaccepteerd:`, result.error);
                 }
             } catch (error) {
+                failCount++;
                 console.error(`❌ Fout bij synchroniseren preek ${sermon.id}:`, error);
+                
                 // Stop met sync als we offline zijn gegaan
-                if (!navigator.onLine) break;
+                if (!navigator.onLine || error.name === 'AbortError') {
+                    console.log('⏸️ Sync gestopt - verbinding verloren');
+                    break;
+                }
             }
         }
         
@@ -266,7 +329,16 @@ async function checkAndSyncPending() {
         // Toon melding als er iets gesynchroniseerd is
         if (syncCount > 0) {
             console.log(`✅ ${syncCount} preek${syncCount > 1 ? 'en' : ''} gesynchroniseerd`);
-            showToast(`${syncCount} preek${syncCount > 1 ? 'en' : ''} succesvol gesynchroniseerd`, 'success');
+            showToast(`✅ ${syncCount} preek${syncCount > 1 ? 'en' : ''} gesynchroniseerd`, 'success');
+            syncRetryCount = 0; // Reset on success
+        }
+        
+        // Retry if some failed and we have connection
+        if (failCount > 0 && syncRetryCount < MAX_SYNC_RETRIES) {
+            const retryDelay = Math.min(2000 * Math.pow(2, syncRetryCount), 30000);
+            console.log(`⏱️ ${failCount} mislukt - retry in ${retryDelay / 1000}s...`);
+            syncRetryCount++;
+            setTimeout(() => checkAndSyncPending(true), retryDelay);
         }
         
         // Refresh sermon list if we're on that tab
@@ -276,7 +348,14 @@ async function checkAndSyncPending() {
         
     } catch (error) {
         console.error('Error checking pending sermons:', error);
-        // Don't throw - this is background sync
+        
+        // Retry on error if not too many attempts
+        if (syncRetryCount < MAX_SYNC_RETRIES) {
+            const retryDelay = Math.min(3000 * Math.pow(2, syncRetryCount), 30000);
+            console.log(`⏱️ Error - retry in ${retryDelay / 1000}s...`);
+            syncRetryCount++;
+            setTimeout(() => checkAndSyncPending(true), retryDelay);
+        }
     }
 }
 
@@ -285,19 +364,60 @@ function setTodayDate() {
     document.getElementById('sermon-date').value = today;
 }
 
+// ===== SIDEBAR & NAVIGATION =====
+function initializeSidebar() {
+    const hamburger = document.getElementById('hamburger-menu');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarClose = document.getElementById('sidebar-close');
+    const overlay = document.getElementById('sidebar-overlay');
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    // Toggle sidebar
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        hamburger.classList.toggle('active');
+    });
+    
+    // Close sidebar
+    const closeSidebar = () => {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        hamburger.classList.remove('active');
+    };
+    
+    sidebarClose.addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+    
+    // Escape key to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            closeSidebar();
+        }
+    });
+    
+    // Navigation items
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const tabName = item.dataset.tab;
+            showTab(tabName);
+            closeSidebar();
+            
+            // Update active state
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+        });
+    });
+}
+
 // ===== TAB NAVIGATIE =====
 function showTab(tabName) {
     // Verberg alle tabs
     const tabs = document.querySelectorAll('.tab-content');
     tabs.forEach(tab => tab.classList.remove('active'));
 
-    // Verwijder active van alle buttons
-    const buttons = document.querySelectorAll('.tab-button');
-    buttons.forEach(btn => btn.classList.remove('active'));
-
     // Toon geselecteerde tab
     document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
 
     // Load data voor specifieke tabs
     if (tabName === 'view-sermons') {
@@ -467,6 +587,45 @@ function setupPassageUrlAutoGeneration(passageEntry) {
     verseStart.addEventListener('input', updateUrl);
 }
 
+// Setup core text auto-generation
+function setupCoreTextAutoGeneration() {
+    const bookSelect = document.getElementById('core-text-book');
+    const chapterInput = document.getElementById('core-text-chapter');
+    const verseInput = document.getElementById('core-text-verse');
+    const urlLink = document.getElementById('core-text-url');
+    
+    if (!bookSelect || !chapterInput || !verseInput || !urlLink) {
+        console.warn('Core text elements not found');
+        return;
+    }
+    
+    const updateUrl = () => {
+        const bookId = parseInt(bookSelect.value);
+        const chapter = parseInt(chapterInput.value);
+        const verse = parseInt(verseInput.value);
+        
+        if (bookId && chapter && verse) {
+            const url = generateBibleUrl(bookId, chapter, verse);
+            
+            // Update link
+            urlLink.href = url;
+            urlLink.textContent = url;
+            urlLink.style.pointerEvents = 'auto';
+            urlLink.style.background = '#dbeafe';
+        } else {
+            // Reset
+            urlLink.href = '#';
+            urlLink.textContent = 'Selecteer eerst kerntekst...';
+            urlLink.style.pointerEvents = 'none';
+            urlLink.style.background = '#e5e7eb';
+        }
+    };
+    
+    bookSelect.addEventListener('change', updateUrl);
+    chapterInput.addEventListener('input', updateUrl);
+    verseInput.addEventListener('input', updateUrl);
+}
+
 function removePassage(passageId) {
     const passage = document.querySelector(`[data-passage-id="${passageId}"]`);
     if (passage) {
@@ -520,14 +679,33 @@ async function handleSermonSubmit(e) {
     e.preventDefault();
     
     const messageDiv = document.getElementById('form-message');
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+    
+    // Disable button during save
+    submitButton.disabled = true;
+    submitButton.textContent = '💾 Opslaan...';
     
     try {
-        // Verzamel sermon data
+        // Verzamel sermon data with new core text format
+        const coreTextBook = document.getElementById('core-text-book').value;
+        const coreTextChapter = document.getElementById('core-text-chapter').value;
+        const coreTextVerse = document.getElementById('core-text-verse').value;
+        
+        // Generate core text reference string
+        let coreTextReference = '';
+        if (coreTextBook && coreTextChapter && coreTextVerse) {
+            const book = BIBLE_BOOKS.find(b => b.id == coreTextBook);
+            if (book) {
+                coreTextReference = `${book.name} ${coreTextChapter}:${coreTextVerse}`;
+            }
+        }
+        
         const sermonData = {
             location: document.getElementById('location').value,
             preacher: document.getElementById('preacher').value,
             sermon_date: document.getElementById('sermon-date').value,
-            core_text: document.getElementById('core-text').value,
+            core_text: coreTextReference,
             occasion_id: document.getElementById('occasion').value || null
         };
 
@@ -535,7 +713,7 @@ async function handleSermonSubmit(e) {
         const passages = [];
         document.querySelectorAll('.passage-entry').forEach((entry) => {
             const bibleBookId = entry.querySelector('.bible-book').value;
-            if (! bibleBookId) return; // Skip als geen boek geselecteerd
+            if (!bibleBookId) return; // Skip als geen boek geselecteerd
             
             const urlLink = entry.querySelector('.passage-url');
             const passageUrl = urlLink.href !== '#' && urlLink.href !== window.location.href ? urlLink.href : null;
@@ -546,7 +724,7 @@ async function handleSermonSubmit(e) {
                 verse_start: parseInt(entry.querySelector('.verse-start').value) || null,
                 chapter_end: parseInt(entry.querySelector('.chapter-end').value) || null,
                 verse_end: parseInt(entry.querySelector('.verse-end').value) || null,
-                is_main_passage:  entry.querySelector('.is-main').checked ?  1 : 0,
+                is_main_passage: entry.querySelector('.is-main').checked ? 1 : 0,
                 passage_url: passageUrl
             });
         });
@@ -557,7 +735,7 @@ async function handleSermonSubmit(e) {
             const content = entry.querySelector('.point-content').value;
             if (content.trim()) {
                 points.push({
-                    point_type:  entry.querySelector('.point-type').value,
+                    point_type: entry.querySelector('.point-type').value,
                     point_order: index + 1,
                     title: entry.querySelector('.point-title').value || null,
                     content: content
@@ -571,35 +749,41 @@ async function handleSermonSubmit(e) {
             points: points
         };
 
-        // Check of we online zijn
-        if (!navigator.onLine) {
+        // Check connection quality (not just navigator.onLine)
+        const isOnline = navigator.onLine && await checkConnectionQuality();
+
+        if (!isOnline) {
             // Offline: sla op in IndexedDB
             await offlineDB.init();
             await offlineDB.savePendingSermon(payload);
             
-            messageDiv.className = 'message success';
-            messageDiv.textContent = '📱 Offline opgeslagen - wordt gesynchroniseerd zodra je online bent';
-            messageDiv.style.display = 'block';
+            showToast('📱 Offline opgeslagen - wordt gesynchroniseerd zodra je online bent', 'success', 4000);
             
             updatePendingCount();
             
             setTimeout(() => {
                 resetForm();
-                messageDiv.style.display = 'none';
-            }, 3000);
+            }, 1000);
             
             return;
         }
 
-        // Online: verstuur naar API
+        // Online: verstuur naar API met timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+        
+        submitButton.textContent = '📤 Verzenden...';
+        
         const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
         const result = await response.json();
 
         if (result.error) {
@@ -607,34 +791,38 @@ async function handleSermonSubmit(e) {
         }
 
         if (result.success) {
-            messageDiv.className = 'message success';
-            messageDiv.textContent = '✓ Preek succesvol opgeslagen!';
-            messageDiv.style.display = 'block';
-            
-            // Add success animation
-            messageDiv.style.animation = 'slideInDown 0.4s ease';
+            showToast('✅ Preek succesvol opgeslagen!', 'success');
             
             setTimeout(() => {
-                messageDiv.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => {
-                    resetForm();
-                    messageDiv.style.display = 'none';
-                    messageDiv.style.animation = '';
-                }, 300);
-            }, 2500);
+                resetForm();
+            }, 1000);
         }
 
     } catch (error) {
-        // Network error - probeer offline op te slaan
-        if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+        console.error('Save error:', error);
+        
+        // Network error or timeout - probeer offline op te slaan
+        if (error.name === 'AbortError' || error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
             try {
-                await offlineDB.init();
+                // Re-collect form data with new core text format
+                const coreTextBook = document.getElementById('core-text-book').value;
+                const coreTextChapter = document.getElementById('core-text-chapter').value;
+                const coreTextVerse = document.getElementById('core-text-verse').value;
+                
+                let coreTextReference = '';
+                if (coreTextBook && coreTextChapter && coreTextVerse) {
+                    const book = BIBLE_BOOKS.find(b => b.id == coreTextBook);
+                    if (book) {
+                        coreTextReference = `${book.name} ${coreTextChapter}:${coreTextVerse}`;
+                    }
+                }
+                
                 const payload = {
                     sermon: {
                         location: document.getElementById('location').value,
                         preacher: document.getElementById('preacher').value,
                         sermon_date: document.getElementById('sermon-date').value,
-                        core_text: document.getElementById('core-text').value,
+                        core_text: coreTextReference,
                         occasion_id: document.getElementById('occasion').value || null
                     },
                     passages: Array.from(document.querySelectorAll('.passage-entry')).map(entry => {
@@ -666,28 +854,33 @@ async function handleSermonSubmit(e) {
                     }).filter(p => p !== null)
                 };
                 
+                await offlineDB.init();
                 await offlineDB.savePendingSermon(payload);
                 
-                messageDiv.className = 'message success';
-                messageDiv.textContent = '📱 Verbinding mislukt - offline opgeslagen voor latere synchronisatie';
-                messageDiv.style.display = 'block';
+                const errorMsg = error.name === 'AbortError' ? 
+                    '⏱️ Verbinding te traag - offline opgeslagen voor latere synchronisatie' :
+                    '📱 Verbinding mislukt - offline opgeslagen voor latere synchronisatie';
+                    
+                showToast(errorMsg, 'warning', 5000);
                 
                 updatePendingCount();
                 
                 setTimeout(() => {
                     resetForm();
-                    messageDiv.style.display = 'none';
-                }, 3000);
+                }, 1000);
                 
                 return;
             } catch (dbError) {
                 console.error('Failed to save offline:', dbError);
+                showToast('❌ Opslaan mislukt: ' + dbError.message, 'error', 5000);
             }
+        } else {
+            showToast('❌ Fout bij opslaan: ' + error.message, 'error', 5000);
         }
-        
-        messageDiv.className = 'message error';
-        messageDiv.textContent = '✗ Fout bij opslaan:  ' + error.message;
-        messageDiv.style.display = 'block';
+    } finally {
+        // Re-enable button
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
     }
 }
 
@@ -701,6 +894,15 @@ function resetForm() {
     allPassages.forEach((passage, index) => {
         if (index > 0) passage.remove();
     });
+    
+    // Reset core text URL
+    const coreTextUrl = document.getElementById('core-text-url');
+    if (coreTextUrl) {
+        coreTextUrl.href = '#';
+        coreTextUrl.textContent = 'Selecteer eerst kerntekst...';
+        coreTextUrl.style.pointerEvents = 'none';
+        coreTextUrl.style.background = '#e5e7eb';
+    }
     
     pointCounter = 0;
     passageCounter = 1;
@@ -1185,6 +1387,7 @@ async function clearAllCaches() {
     console.log('🔄 Service worker unregistered!');
     
     console.log('✅ Reload de pagina om een verse versie te krijgen');
+    showToast('Cache gewist - reload pagina', 'info', 3000);
 }
 
 // Reset IndexedDB (gebruik in console: resetOfflineDB())
@@ -1192,11 +1395,37 @@ async function resetOfflineDB() {
     try {
         await offlineDB.resetDatabase();
         console.log('✅ IndexedDB gereset! Reload de pagina.');
+        showToast('Database gereset - reload pagina', 'info', 3000);
     } catch (error) {
         console.error('❌ Failed to reset IndexedDB:', error);
     }
 }
 
+// Show storage info (gebruik in console: showStorageInfo())
+async function showStorageInfo() {
+    const info = await offlineDB.getStorageInfo();
+    if (info) {
+        console.log(`📊 Storage Info:
+  Usage: ${info.usageMB} MB / ${info.quotaMB} MB
+  Percentage: ${info.percentUsed.toFixed(2)}%
+  Available: ${(info.quotaMB - info.usageMB).toFixed(2)} MB`);
+        showToast(`Storage: ${info.percentUsed.toFixed(1)}% gebruikt (${info.usageMB}/${info.quotaMB} MB)`, 'info', 4000);
+    } else {
+        console.log('Storage API niet beschikbaar');
+    }
+    return info;
+}
+
+// Clean old synced items (gebruik in console: cleanOldItems())
+async function cleanOldItems(days = 30) {
+    const count = await offlineDB.cleanOldSyncedItems(days);
+    console.log(`✅ ${count} oude items verwijderd`);
+    showToast(`${count} oude items verwijderd`, 'success');
+    return count;
+}
+
 // Maak beschikbaar in console
 window.clearAllCaches = clearAllCaches;
 window.resetOfflineDB = resetOfflineDB;
+window.showStorageInfo = showStorageInfo;
+window.cleanOldItems = cleanOldItems;

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preeknotities Beheer</title>
-    <!-- App Version: 2.0.0 - Offline-First with Local Data -->
+    <!-- App Version: 2.2.0 - Hamburger Menu & Improved Text Editing -->
+    <!-- Service Worker: v11 -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -34,25 +35,54 @@
         🌙
     </button>
 
-    <div class="container">
-        <header>
-            <h1>📖 Preeknotities Beheer</h1>
-            <p>Beheer je preeknotities en bijbelgedeelten</p>
-            <p id="user-info" style="font-size: 0.9rem; opacity: 0.8; margin-top: 10px;"></p>
-            <div id="offline-status" class="online-status online">🌐 Online</div>
-        </header>
+    <!-- Hamburger Menu Button -->
+    <button class="hamburger-menu" id="hamburger-menu" aria-label="Menu" title="Open menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 
-        <nav class="tabs">
-            <button class="tab-button active" onclick="showTab('add-sermon')">Preek Toevoegen</button>
-            <button class="tab-button" onclick="showTab('view-sermons')">Preken Bekijken</button>
-            <button class="tab-button" onclick="showTab('search')">Zoeken</button>
-            <button class="tab-button" onclick="showTab('stats')">Statistieken</button>
-        </nav>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>📖 Preeknotities</h2>
+            <button class="sidebar-close" id="sidebar-close" aria-label="Sluit menu">×</button>
+        </div>
+        
+        <div class="sidebar-content">
+            <button class="nav-item active" data-tab="add-sermon">
+                <span class="nav-icon">✏️</span>
+                <span class="nav-label">Nieuwe Preek</span>
+            </button>
+            <button class="nav-item" data-tab="view-sermons">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">Preken Bekijken</span>
+            </button>
+            <button class="nav-item" data-tab="search">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-label">Zoeken</span>
+            </button>
+            <button class="nav-item" data-tab="stats">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Statistieken</span>
+            </button>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-info">
+                <div id="offline-status" class="online-status online">🌐 Online</div>
+                <div id="user-info" class="user-info-compact"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Overlay for closing sidebar -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="container">
 
         <!-- TAB 1: Preek Toevoegen -->
         <div id="add-sermon" class="tab-content active">
-            <h2>Nieuwe Preek Toevoegen</h2>
-            
             <form id="sermon-form">
                 <div class="form-section">
                     <h3>Basis Informatie</h3>
@@ -79,9 +109,26 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="core-text">Kerntekst *</label>
-                        <textarea id="core-text" required placeholder="bijv. Want alzo lief heeft God de wereld gehad..." rows="3"></textarea>
+                    <div class="form-group core-text-selector">
+                        <label>Kerntekst *</label>
+                        <div class="core-text-container">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <select id="core-text-book" class="bible-book" required>
+                                        <option value="">-- Selecteer boek --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input type="number" id="core-text-chapter" class="chapter-start" min="1" required placeholder="Hfdst">
+                                </div>
+                                <div class="form-group">
+                                    <input type="number" id="core-text-verse" class="verse-start" min="1" required placeholder="Vers">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <a href="#" id="core-text-url" class="passage-url" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 8px 12px; background: #dbeafe; color: #1e40af; border-radius: 4px; text-decoration: none; font-size: 0.9rem;">Selecteer eerst kerntekst...</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -161,8 +208,6 @@
 
         <!-- TAB 2: Preken Bekijken -->
         <div id="view-sermons" class="tab-content">
-            <h2>Preken Overzicht</h2>
-            
             <div class="filters">
                 <div class="form-group">
                     <label for="filter-preacher">Filter op predikant: </label>
@@ -195,8 +240,6 @@
 
         <!-- TAB 3: Zoeken -->
         <div id="search" class="tab-content">
-            <h2>Zoeken in Preken</h2>
-            
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="Zoek op kernwoorden, bijbelboek, predikant... ">
                 <button class="btn-primary" onclick="searchSermons()">Zoeken</button>
@@ -209,8 +252,6 @@
 
         <!-- TAB 4: Statistieken -->
         <div id="stats" class="tab-content">
-            <h2>Statistieken</h2>
-            
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Totaal Preken</h3>

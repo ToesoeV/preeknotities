@@ -1,4 +1,5 @@
 // IndexedDB helper voor offline sermon opslag
+// Version: 2.1.0 - Enhanced with quota management and cleanup
 const DB_NAME = 'PreeknotitiesOffline';
 const DB_VERSION = 4; // Verhoogd om schema te resetten
 const STORE_NAME = 'pending-sermons';
@@ -49,9 +50,35 @@ class OfflineDB {
         });
     }
 
+    async checkStorageQuota() {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            try {
+                const estimate = await navigator.storage.estimate();
+                const percentUsed = (estimate.usage / estimate.quota) * 100;
+                console.log(`📊 Storage: ${(estimate.usage / 1024 / 1024).toFixed(2)}MB / ${(estimate.quota / 1024 / 1024).toFixed(2)}MB (${percentUsed.toFixed(1)}%)`);
+                
+                if (percentUsed > 90) {
+                    console.warn('⚠️ Storage bijna vol!');
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Storage quota check failed:', error);
+                return true; // Continue anyway
+            }
+        }
+        return true; // Storage API not available
+    }
+
     async savePendingSermon(sermonData) {
         try {
             if (!this.db) await this.init();
+            
+            // Check storage quota before saving
+            const hasSpace = await this.checkStorageQuota();
+            if (!hasSpace) {
+                throw new Error('Onvoldoende opslagruimte - verwijder oude data of sync bestaande preken');
+            }
 
             return new Promise((resolve, reject) => {
                 try {
@@ -61,7 +88,7 @@ class OfflineDB {
                     const sermon = {
                         ...sermonData,
                         timestamp: Date.now(),
-                        synced: false
+                        synced: 0  // Use 0 instead of false for IDBKeyRange compatibility
                     };
 
                     const request = store.add(sermon);
@@ -151,6 +178,58 @@ class OfflineDB {
             const request = index.count(IDBKeyRange.only(0));
             
             request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    // Get storage usage info
+    async getStorageInfo() {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            try {
+                const estimate = await navigator.storage.estimate();
+                return {
+                    usage: estimate.usage,
+                    quota: estimate.quota,
+                    percentUsed: (estimate.usage / estimate.quota) * 100,
+                    usageMB: (estimate.usage / 1024 / 1024).toFixed(2),
+                    quotaMB: (estimate.quota / 1024 / 1024).toFixed(2)
+                };
+            } catch (error) {
+                console.error('Storage info error:', error);
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    // Clean old synced items (for maintenance)
+    async cleanOldSyncedItems(daysOld = 30) {
+        if (!this.db) await this.init();
+        
+        const cutoffTime = Date.now() - (daysOld * 24 * 60 * 60 * 1000);
+        
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const index = store.index('synced');
+            
+            const request = index.openCursor(IDBKeyRange.only(1)); // Synced items
+            let deleteCount = 0;
+            
+            request.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    if (cursor.value.timestamp < cutoffTime) {
+                        cursor.delete();
+                        deleteCount++;
+                    }
+                    cursor.continue();
+                } else {
+                    console.log(`🗑️ Cleaned ${deleteCount} old synced items`);
+                    resolve(deleteCount);
+                }
+            };
+            
             request.onerror = () => reject(request.error);
         });
     }

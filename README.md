@@ -2,6 +2,10 @@
 
 Een moderne, offline-first Progressive Web App (PWA) voor het beheren van preeknotities en bijbelgedeelten.
 
+**Version:** 2.1.0 - Enhanced Mobile Offline  
+**Service Worker:** v11  
+**Last Updated:** December 24, 2025
+
 ## ✨ Features
 
 ### 🎨 UI/UX
@@ -12,10 +16,14 @@ Een moderne, offline-first Progressive Web App (PWA) voor het beheren van preekn
 
 ### 📱 PWA Capabilities
 - **Offline-First** - Werkt volledig offline met lokale opslag
+- **Smart Sync** - Automatische synchronisatie met retry logic en exponential backoff
+- **Connection Quality Detection** - Detecteert echte connectiviteit, niet alleen navigator.onLine
+- **Storage Quota Management** - Controleert ruimte voordat opslaan, waarschuwt bij 90%
 - **Installeerbaar** - Installeer als native app op elk apparaat
-- **Background Sync** - Automatische synchronisatie wanneer online
-- **Service Worker** - Snelle loading met intelligente caching
+- **Background Sync** - Intelligente synchronisatie met timeout handling (30s)
+- **Service Worker** - Snelle loading met intelligente caching (v11)
 - **Local Static Data** - Bijbelboeken en gelegenheden altijd beschikbaar (geen API nodig)
+- **Mobile Optimized** - Touch-friendly buttons (44px), geen iOS zoom, perfect voor telefoons
 
 ### 🔧 Functionaliteit
 - Preken toevoegen met bijbelgedeelten en punten
@@ -43,9 +51,14 @@ Een moderne, offline-first Progressive Web App (PWA) voor het beheren van preekn
 
 ### Offline Functionaliteit
 - Preken worden lokaal opgeslagen als je offline bent
+- **Smart Connection Detection** - Test echte connectiviteit, niet alleen browser status
+- **Retry Logic** - Automatische retries met exponential backoff (max 3 pogingen)
+- **Timeout Handling** - 30 seconden timeout voor mobiele connecties
 - Automatische synchronisatie wanneer verbinding hersteld is
 - Visuele indicator voor online/offline status
-- Pending badges tonen aantal niet-gesynchroniseerde preken
+- **Pending badges** tonen aantal niet-gesynchroniseerde preken
+- **Storage Management** - Controleert quota en waarschuwt bij 90% vol
+- Console helpers: `showStorageInfo()`, `cleanOldItems()`, `resetOfflineDB()`
 
 ### PWA Installatie
 - Automatische installatie prompt op ondersteunde apparaten
