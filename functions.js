@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initializeTheme();
     initializeToastContainer();
-    initializeSidebar(); // Setup hamburger menu
+    initializeNavigation(); // Setup top navigation
     
     // Laad LOKALE statische data (werkt altijd, ook offline!)
     populateBibleBookSelects(); // Gebruikt BIBLE_BOOKS uit static-data.js
@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setupEventListeners();
     setTodayDate();
-    displayUserInfo();
     updatePendingCount();
     checkAndSyncPending();
     updateOnlineStatus(); // Zet initiële status
@@ -393,48 +392,19 @@ function setTodayDate() {
     document.getElementById('sermon-date').value = today;
 }
 
-// ===== SIDEBAR & NAVIGATION =====
-function initializeSidebar() {
-    const hamburger = document.getElementById('hamburger-menu');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarClose = document.getElementById('sidebar-close');
-    const overlay = document.getElementById('sidebar-overlay');
-    const navItems = document.querySelectorAll('.nav-item');
+// ===== NAVIGATION =====
+function initializeNavigation() {
+    const navButtons = document.querySelectorAll('.nav-btn');
     
-    // Toggle sidebar
-    hamburger.addEventListener('click', () => {
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-        hamburger.classList.toggle('active');
-    });
-    
-    // Close sidebar
-    const closeSidebar = () => {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-        hamburger.classList.remove('active');
-    };
-    
-    sidebarClose.addEventListener('click', closeSidebar);
-    overlay.addEventListener('click', closeSidebar);
-    
-    // Escape key to close
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-            closeSidebar();
-        }
-    });
-    
-    // Navigation items
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const tabName = item.dataset.tab;
+    // Navigation button clicks
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.dataset.tab;
             showTab(tabName);
-            closeSidebar();
             
             // Update active state
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
+            navButtons.forEach(nav => nav.classList.remove('active'));
+            button.classList.add('active');
         });
     });
 }
