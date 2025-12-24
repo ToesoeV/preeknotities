@@ -92,7 +92,8 @@ const OCCASIONS = [
     { id: 12, name: 'Biddag' },
     { id: 13, name: 'Dankdag' },
     { id: 14, name: 'Eeuwigheidszondag' },
-    { id: 15, name: 'Advent' }
+    { id: 15, name: 'Advent' },
+    { id: 16, name: 'Reguliere dienst' }
 ];
 
 // ===== BELANGRIJK =====
