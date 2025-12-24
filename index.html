@@ -29,6 +29,7 @@
             <h1>📖 Preeknotities Beheer</h1>
             <p>Beheer je preeknotities en bijbelgedeelten</p>
             <p id="user-info" style="font-size: 0.9rem; opacity: 0.8; margin-top: 10px;"></p>
+            <div id="offline-status" class="online-status online">🌐 Online</div>
         </header>
 
         <nav class="tabs">
@@ -249,6 +250,7 @@
         </div>
     </div>
 
+    <script src="offline-db.js"></script>
     <script src="functions.js"></script>
     
     <!-- PWA Service Worker Registration -->
@@ -263,6 +265,13 @@
                         registration.addEventListener('updatefound', () => {
                             console.log('🔄 Service Worker update gevonden');
                         });
+                        
+                        // Registreer background sync voor pending sermons
+                        if ('sync' in registration) {
+                            registration.sync.register('sync-sermons').catch(err => {
+                                console.warn('Background sync registratie mislukt:', err);
+                            });
+                        }
                     })
                     .catch(error => {
                         console.error('❌ Service Worker registratie mislukt:', error);

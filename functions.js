@@ -15,10 +15,106 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     setTodayDate();
     displayUserInfo();
+    updatePendingCount();
+    checkAndSyncPending();
+    
+    // Listen voor online/offline events
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 });
 
 function setupEventListeners() {
     document.getElementById('sermon-form').addEventListener('submit', handleSermonSubmit);
+}
+
+// ===== ONLINE/OFFLINE HANDLERS =====
+function handleOnline() {
+    console.log('🌐 Online - controleer pending sermons...');
+    const statusDiv = document.getElementById('offline-status');
+    if (statusDiv) {
+        statusDiv.textContent = '🌐 Online';
+        statusDiv.className = 'online-status online';
+    }
+    checkAndSyncPending();
+}
+
+function handleOffline() {
+    console.log('📱 Offline mode');
+    const statusDiv = document.getElementById('offline-status');
+    if (statusDiv) {
+        statusDiv.textContent = '📱 Offline';
+        statusDiv.className = 'online-status offline';
+    }
+}
+
+async function updatePendingCount() {
+    try {
+        await offlineDB.init();
+        const count = await offlineDB.getPendingCount();
+        
+        const badge = document.getElementById('pending-badge');
+        if (count > 0) {
+            if (!badge) {
+                const header = document.querySelector('header p');
+                const badgeHTML = `<span id="pending-badge" class="pending-badge">${count} preek${count > 1 ? 'en' : ''} wacht op synchronisatie</span>`;
+                header.insertAdjacentHTML('afterend', badgeHTML);
+            } else {
+                badge.textContent = `${count} preek${count > 1 ? 'en' : ''} wacht op synchronisatie`;
+            }
+        } else if (badge) {
+            badge.remove();
+        }
+    } catch (error) {
+        console.error('Error updating pending count:', error);
+    }
+}
+
+async function checkAndSyncPending() {
+    if (!navigator.onLine) return;
+    
+    try {
+        await offlineDB.init();
+        const pendingSermons = await offlineDB.getPendingSermons();
+        
+        if (pendingSermons.length === 0) return;
+        
+        console.log(`📤 Synchroniseren ${pendingSermons.length} pending sermons...`);
+        
+        for (const sermon of pendingSermons) {
+            try {
+                const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sermon: sermon.sermon,
+                        passages: sermon.passages,
+                        points: sermon.points
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    await offlineDB.deleteSynced(sermon.id);
+                    console.log(`✅ Preek ${sermon.id} gesynchroniseerd`);
+                }
+            } catch (error) {
+                console.error(`❌ Fout bij synchroniseren preek ${sermon.id}:`, error);
+            }
+        }
+        
+        await updatePendingCount();
+        
+        // Refresh sermon list if we're on that tab
+        if (document.getElementById('view-sermons').classList.contains('active')) {
+            loadSermons();
+        }
+        
+    } catch (error) {
+        console.error('Error checking pending sermons:', error);
+    }
 }
 
 function setTodayDate() {
@@ -294,17 +390,39 @@ async function handleSermonSubmit(e) {
             }
         });
 
-        // Verstuur naar API
+        const payload = {
+            sermon: sermonData,
+            passages: passages,
+            points: points
+        };
+
+        // Check of we online zijn
+        if (!navigator.onLine) {
+            // Offline: sla op in IndexedDB
+            await offlineDB.init();
+            await offlineDB.savePendingSermon(payload);
+            
+            messageDiv.className = 'message success';
+            messageDiv.textContent = '📱 Offline opgeslagen - wordt gesynchroniseerd zodra je online bent';
+            messageDiv.style.display = 'block';
+            
+            updatePendingCount();
+            
+            setTimeout(() => {
+                resetForm();
+                messageDiv.style.display = 'none';
+            }, 3000);
+            
+            return;
+        }
+
+        // Online: verstuur naar API
         const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                sermon: sermonData,
-                passages: passages,
-                points: points
-            })
+            body: JSON.stringify(payload)
         });
 
         const result = await response.json();
@@ -325,6 +443,62 @@ async function handleSermonSubmit(e) {
         }
 
     } catch (error) {
+        // Network error - probeer offline op te slaan
+        if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+            try {
+                await offlineDB.init();
+                const payload = {
+                    sermon: {
+                        location: document.getElementById('location').value,
+                        preacher: document.getElementById('preacher').value,
+                        sermon_date: document.getElementById('sermon-date').value,
+                        core_text: document.getElementById('core-text').value,
+                        occasion_id: document.getElementById('occasion').value || null
+                    },
+                    passages: Array.from(document.querySelectorAll('.passage-entry')).map(entry => {
+                        const bibleBookId = entry.querySelector('.bible-book').value;
+                        if (!bibleBookId) return null;
+                        return {
+                            bible_book_id: parseInt(bibleBookId),
+                            chapter_start: parseInt(entry.querySelector('.chapter-start').value),
+                            verse_start: parseInt(entry.querySelector('.verse-start').value) || null,
+                            chapter_end: parseInt(entry.querySelector('.chapter-end').value) || null,
+                            verse_end: parseInt(entry.querySelector('.verse-end').value) || null,
+                            is_main_passage: entry.querySelector('.is-main').checked ? 1 : 0,
+                            passage_url: entry.querySelector('.passage-url').value || null
+                        };
+                    }).filter(p => p !== null),
+                    points: Array.from(document.querySelectorAll('.point-entry')).map((entry, index) => {
+                        const content = entry.querySelector('.point-content').value;
+                        if (!content.trim()) return null;
+                        return {
+                            point_type: entry.querySelector('.point-type').value,
+                            point_order: index + 1,
+                            title: entry.querySelector('.point-title').value || null,
+                            content: content
+                        };
+                    }).filter(p => p !== null)
+                };
+                
+                await offlineDB.savePendingSermon(payload);
+                
+                messageDiv.className = 'message success';
+                messageDiv.textContent = '📱 Verbinding mislukt - offline opgeslagen voor latere synchronisatie';
+                messageDiv.style.display = 'block';
+                
+                updatePendingCount();
+                
+                setTimeout(() => {
+                    resetForm();
+                    messageDiv.style.display = 'none';
+                }, 3000);
+                
+                return;
+            } catch (dbError) {
+                console.error('Failed to save offline:', dbError);
+            }
+        }
+        
         messageDiv.className = 'message error';
         messageDiv.textContent = '✗ Fout bij opslaan:  ' + error.message;
         messageDiv.style.display = 'block';

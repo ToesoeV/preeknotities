@@ -560,5 +560,37 @@ header p {
 
 .empty-state h3 {
     margin-bottom: 10px;
-    color: var(--text-primary);
+    color: var(--text-secondary);
+}
+
+/* Offline Status */
+.online-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.online-status.online {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.online-status.offline {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.pending-badge {
+    display: block;
+    background-color: #dbeafe;
+    color: #1e40af;
+    padding: 8px 16px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
 }

@@ -1,8 +1,9 @@
-const CACHE_NAME = 'preeknotities-v2';
+const CACHE_NAME = 'preeknotities-v3';
 const urlsToCache = [
   '/index.html',
   '/styles.css',
   '/functions.js',
+  '/offline-db.js',
   '/manifest.json',
   '/icons/logo.svg'
 ];
@@ -99,17 +100,99 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Background sync for offline sermon submissions (optional enhancement)
+// Background sync voor offline sermon submissions
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-sermons') {
-    event.waitUntil(syncSermons());
+    event.waitUntil(syncPendingSermons());
   }
 });
 
-async function syncSermons() {
-  // This would handle offline sermon submissions
-  // You could store submissions in IndexedDB and sync when online
-  console.log('Syncing sermons...');
+async function syncPendingSermons() {
+  console.log('🔄 Background Sync: Synchroniseren pending sermons...');
+  
+  try {
+    // Open IndexedDB
+    const db = await openDB();
+    const pendingSermons = await getPendingSermons(db);
+    
+    if (pendingSermons.length === 0) {
+      console.log('✅ Geen pending sermons');
+      return;
+    }
+    
+    console.log(`📤 ${pendingSermons.length} pending sermons gevonden`);
+    
+    for (const sermon of pendingSermons) {
+      try {
+        const response = await fetch('/api/sermons', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sermon: sermon.sermon,
+            passages: sermon.passages,
+            points: sermon.points
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            await deleteSyncedSermon(db, sermon.id);
+            console.log(`✅ Preek ${sermon.id} gesynchroniseerd`);
+            
+            // Notify gebruiker
+            if (self.registration.showNotification) {
+              self.registration.showNotification('Preek Gesynchroniseerd', {
+                body: 'Je offline preek is succesvol opgeslagen',
+                icon: '/icons/logo.svg',
+                badge: '/icons/logo.svg',
+                tag: 'sermon-synced'
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Fout bij synchroniseren preek ${sermon.id}:`, error);
+        // Laat sermon in database staan voor volgende sync poging
+      }
+    }
+  } catch (error) {
+    console.error('❌ Background sync error:', error);
+  }
+}
+
+// IndexedDB helpers voor Service Worker
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('PreeknotitiesOffline', 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getPendingSermons(db) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['pending-sermons'], 'readonly');
+    const store = transaction.objectStore('pending-sermons');
+    const index = store.index('synced');
+    const request = index.getAll(false);
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function deleteSyncedSermon(db, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['pending-sermons'], 'readwrite');
+    const store = transaction.objectStore('pending-sermons');
+    const request = store.delete(id);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
 }
 
 // Push notifications (optional enhancement)
