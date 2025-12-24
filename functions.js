@@ -448,9 +448,7 @@ function setupPassageUrlAutoGeneration(passageEntry) {
             const url = generateBibleUrl(
                 bookId,
                 chapter,
-                verseStart.value || null,
-                chapterEnd.value || null,
-                verseEnd.value || null
+                verseStart.value || null
             );
             
             // Alleen updaten als gebruiker nog niks heeft ingetypt

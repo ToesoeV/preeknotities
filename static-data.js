@@ -105,7 +105,7 @@ const OCCASIONS = [
 // ===== HELPER FUNCTIES =====
 // Genereer Bible.com URL voor een bijbelgedeelte
 // Formaat: https://bible.com/bible/1990/{abbr}.{chapter}.{verse}.HSV
-function generateBibleUrl(bookId, chapterStart, verseStart, chapterEnd, verseEnd) {
+function generateBibleUrl(bookId, chapterStart, verseStart) {
     const book = BIBLE_BOOKS.find(b => b.id === parseInt(bookId));
     if (!book || !chapterStart) return '';
     
