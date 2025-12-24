@@ -1,9 +1,10 @@
-const CACHE_NAME = 'preeknotities-v1';
+const CACHE_NAME = 'preeknotities-v2';
 const urlsToCache = [
   '/index.html',
   '/styles.css',
   '/functions.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/icons/logo.svg'
 ];
 
 // Install event - cache resources
@@ -45,6 +46,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   
+  // BELANGRIJK: Laat Cloudflare Access en CDN requests ALTIJD door
+  if (url.hostname.includes('cloudflareaccess.com') || 
+      url.pathname.includes('/cdn-cgi/')) {
+    return; // Service Worker doet niets - laat browser het afhandelen
+  }
+  
   // Skip cross-origin requests
   if (url.origin !== location.origin) {
     return;
@@ -55,25 +62,9 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Network-first strategy for API calls (including Cloudflare Functions)
+  // Network-first strategy voor API calls (bypass cache omdat ze auth vereisen)
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/functions/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          // Only cache successful responses
-          if (response.ok) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // If network fails, try cache
-          return caches.match(event.request);
-        })
-    );
+    // Laat API requests gewoon door zonder caching - ze hebben Cloudflare Access nodig
     return;
   }
 
