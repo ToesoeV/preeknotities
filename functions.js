@@ -884,12 +884,19 @@ async function handleSermonSubmit(e) {
         
         // Generate core text reference string with range support
         let coreTextReference = '';
+        let coreTextUrl = '';
         if (coreTextBook && coreTextChapter && coreTextVerse) {
             const book = BIBLE_BOOKS.find(b => b.id == coreTextBook);
             if (book) {
                 coreTextReference = `${book.name} ${coreTextChapter}:${coreTextVerse}`;
                 if (coreTextVerseEnd && parseInt(coreTextVerseEnd) > parseInt(coreTextVerse)) {
                     coreTextReference += `-${coreTextVerseEnd}`;
+                }
+                
+                // Get the core text URL from the link element
+                const coreTextUrlElement = document.getElementById('core-text-url');
+                if (coreTextUrlElement && coreTextUrlElement.href && coreTextUrlElement.href !== '#') {
+                    coreTextUrl = coreTextUrlElement.href;
                 }
             }
         }
@@ -899,6 +906,7 @@ async function handleSermonSubmit(e) {
             preacher: getFieldValue('preacher'),
             sermon_date: document.getElementById('sermon-date').value,
             core_text: coreTextReference,
+            core_text_url: coreTextUrl,
             occasion_id: document.getElementById('occasion').value || null
         };
 
@@ -1438,7 +1446,9 @@ async function showSermonDetails(sermonId) {
             </div>
 
             <h3>Kerntekst</h3>
-            <p style="font-style: italic; margin-bottom: 20px;">"${sermon.core_text}"</p>
+            <p style="font-style: italic; margin-bottom: 10px;">"${sermon.core_text}"</p>
+            ${sermon.core_text_url ? `<p><a href="${sermon.core_text_url}" target="_blank" rel="noopener noreferrer" class="passage-url">📖 Lees kerntekst online</a></p>` : ''}
+            <div style="margin-bottom: 20px;"></div>
 
             <h3>Bijbelgedeelten</h3>
         `;
