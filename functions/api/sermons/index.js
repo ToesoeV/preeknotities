@@ -64,7 +64,7 @@ export async function onRequestPost(context) {
     for (const passage of data.passages) {
       await context.env.DB.prepare(
         `INSERT INTO sermon_passages 
-         (sermon_id, book_id, chapter_start, verse_start, chapter_end, verse_end, is_main_passage, passage_url) 
+         (sermon_id, bible_book_id, chapter_start, verse_start, chapter_end, verse_end, is_main_passage, passage_url) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         sermonId,

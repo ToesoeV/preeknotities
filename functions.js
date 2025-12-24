@@ -889,8 +889,8 @@ async function loadStatistics() {
         document.getElementById('sermons-this-year').textContent = stats.sermonsThisYear || 0;
         
         if (stats.bookStats && stats.bookStats.length > 0) {
-            // Lookup book name from local BIBLE_BOOKS array using book_id
-            const book = BIBLE_BOOKS.find(b => b.id == stats.bookStats[0].book_id);
+            // Lookup book name from local BIBLE_BOOKS array using bible_book_id
+            const book = BIBLE_BOOKS.find(b => b.id == stats.bookStats[0].bible_book_id);
             document.getElementById('most-used-book').textContent = book ? book.name : '-';
         } else {
             document.getElementById('most-used-book').textContent = '-';
@@ -1002,9 +1002,9 @@ function displayBooksStatsFromAPI(stats) {
     const maxCount = stats[0] ? stats[0].count : 1;
     
     stats.forEach(stat => {
-        // Lookup book name from local BIBLE_BOOKS array using book_id
-        const book = BIBLE_BOOKS.find(b => b.id == stat.book_id);
-        const bookName = book ? book.name : `Book ID ${stat.book_id}`;
+        // Lookup book name from local BIBLE_BOOKS array using bible_book_id
+        const book = BIBLE_BOOKS.find(b => b.id == stat.bible_book_id);
+        const bookName = book ? book.name : `Book ID ${stat.bible_book_id}`;
         
         const percentage = (stat.count / maxCount * 100).toFixed(1);
         container.innerHTML += `
