@@ -48,14 +48,15 @@ export async function onRequestPost(context) {
     // Voeg user_id toe bij INSERT
     const sermonResult = await context.env.DB.prepare(
       `INSERT INTO sermons 
-       (user_id, location, preacher, sermon_date, core_text) 
-       VALUES (?, ?, ?, ?, ?)`
+       (user_id, location, preacher, sermon_date, core_text, occasion_id) 
+       VALUES (?, ?, ?, ?, ?, ?)`
     ).bind(
       userEmail,  // ← USER ID!  
       data.sermon.location,
       data.sermon.preacher,
       data.sermon.sermon_date,
-      data.sermon.core_text
+      data.sermon.core_text,
+      data.sermon.occasion_id || 16  // ← ADD OCCASION_ID!
     ).run();
 
     const sermonId = sermonResult.meta.last_row_id;

@@ -910,28 +910,9 @@ async function handleSermonSubmit(e) {
             occasion_id: (() => {
                 const occasionSelect = document.getElementById('occasion');
                 const occasionValue = occasionSelect ? occasionSelect.value : null;
-                
-                console.log('🔍 Occasion dropdown debugging:');
-                console.log('  - Element found:', !!occasionSelect);
-                console.log('  - Selected index:', occasionSelect ? occasionSelect.selectedIndex : 'N/A');
-                console.log('  - Raw value:', occasionValue);
-                console.log('  - Value type:', typeof occasionValue);
-                console.log('  - Is empty string:', occasionValue === '');
-                console.log('  - Will use fallback (16):', !occasionValue);
-                
-                if (occasionSelect) {
-                    console.log('  - All options:');
-                    Array.from(occasionSelect.options).forEach((opt, i) => {
-                        console.log(`    [${i}] value="${opt.value}" text="${opt.text}" selected=${opt.selected}`);
-                    });
-                }
-                
                 return occasionValue || 16;
             })()
         };
-
-        // Debug: Log exactly what we're sending to the API
-        console.log('📤 Sending to API:', JSON.stringify(sermonData, null, 2));
         
         // Verzamel passages
         const passages = [];
