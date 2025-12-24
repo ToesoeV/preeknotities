@@ -592,6 +592,7 @@ function setupCoreTextAutoGeneration() {
     const bookSelect = document.getElementById('core-text-book');
     const chapterInput = document.getElementById('core-text-chapter');
     const verseInput = document.getElementById('core-text-verse');
+    const verseEndInput = document.getElementById('core-text-verse-end');
     const urlLink = document.getElementById('core-text-url');
     
     if (!bookSelect || !chapterInput || !verseInput || !urlLink) {
@@ -603,13 +604,23 @@ function setupCoreTextAutoGeneration() {
         const bookId = parseInt(bookSelect.value);
         const chapter = parseInt(chapterInput.value);
         const verse = parseInt(verseInput.value);
+        const verseEnd = verseEndInput ? parseInt(verseEndInput.value) : null;
         
         if (bookId && chapter && verse) {
+            // Always use only the first verse for the link
             const url = generateBibleUrl(bookId, chapter, verse);
+            
+            // Build display text with range if end verse is provided
+            const book = BIBLE_BOOKS.find(b => b.id === bookId);
+            let displayText = url;
+            if (book && verseEnd && verseEnd > verse) {
+                // Show range in text but link stays to first verse
+                displayText = `${book.name} ${chapter}:${verse}-${verseEnd} (link to verse ${verse})`;
+            }
             
             // Update link
             urlLink.href = url;
-            urlLink.textContent = url;
+            urlLink.textContent = displayText;
             urlLink.style.pointerEvents = 'auto';
             urlLink.style.background = '#dbeafe';
         } else {
@@ -624,6 +635,9 @@ function setupCoreTextAutoGeneration() {
     bookSelect.addEventListener('change', updateUrl);
     chapterInput.addEventListener('input', updateUrl);
     verseInput.addEventListener('input', updateUrl);
+    if (verseEndInput) {
+        verseEndInput.addEventListener('input', updateUrl);
+    }
 }
 
 function removePassage(passageId) {
@@ -691,13 +705,17 @@ async function handleSermonSubmit(e) {
         const coreTextBook = document.getElementById('core-text-book').value;
         const coreTextChapter = document.getElementById('core-text-chapter').value;
         const coreTextVerse = document.getElementById('core-text-verse').value;
+        const coreTextVerseEnd = document.getElementById('core-text-verse-end').value;
         
-        // Generate core text reference string
+        // Generate core text reference string with range support
         let coreTextReference = '';
         if (coreTextBook && coreTextChapter && coreTextVerse) {
             const book = BIBLE_BOOKS.find(b => b.id == coreTextBook);
             if (book) {
                 coreTextReference = `${book.name} ${coreTextChapter}:${coreTextVerse}`;
+                if (coreTextVerseEnd && parseInt(coreTextVerseEnd) > parseInt(coreTextVerse)) {
+                    coreTextReference += `-${coreTextVerseEnd}`;
+                }
             }
         }
         
@@ -808,12 +826,16 @@ async function handleSermonSubmit(e) {
                 const coreTextBook = document.getElementById('core-text-book').value;
                 const coreTextChapter = document.getElementById('core-text-chapter').value;
                 const coreTextVerse = document.getElementById('core-text-verse').value;
+                const coreTextVerseEnd = document.getElementById('core-text-verse-end').value;
                 
                 let coreTextReference = '';
                 if (coreTextBook && coreTextChapter && coreTextVerse) {
                     const book = BIBLE_BOOKS.find(b => b.id == coreTextBook);
                     if (book) {
                         coreTextReference = `${book.name} ${coreTextChapter}:${coreTextVerse}`;
+                        if (coreTextVerseEnd && parseInt(coreTextVerseEnd) > parseInt(coreTextVerse)) {
+                            coreTextReference += `-${coreTextVerseEnd}`;
+                        }
                     }
                 }
                 
