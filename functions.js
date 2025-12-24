@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     displayUserInfo();
     updatePendingCount();
     checkAndSyncPending();
+    updateOnlineStatus(); // Zet initiële status
     
     // Listen voor online/offline events
     window.addEventListener('online', handleOnline);
@@ -28,23 +29,28 @@ function setupEventListeners() {
 }
 
 // ===== ONLINE/OFFLINE HANDLERS =====
-function handleOnline() {
-    console.log('🌐 Online - controleer pending sermons...');
+function updateOnlineStatus() {
     const statusDiv = document.getElementById('offline-status');
     if (statusDiv) {
-        statusDiv.textContent = '🌐 Online';
-        statusDiv.className = 'online-status online';
+        if (navigator.onLine) {
+            statusDiv.textContent = '🌐 Online';
+            statusDiv.className = 'online-status online';
+        } else {
+            statusDiv.textContent = '📱 Offline';
+            statusDiv.className = 'online-status offline';
+        }
     }
+}
+
+function handleOnline() {
+    console.log('🌐 Online - controleer pending sermons...');
+    updateOnlineStatus();
     checkAndSyncPending();
 }
 
 function handleOffline() {
     console.log('📱 Offline mode');
-    const statusDiv = document.getElementById('offline-status');
-    if (statusDiv) {
-        statusDiv.textContent = '📱 Offline';
-        statusDiv.className = 'online-status offline';
-    }
+    updateOnlineStatus();
 }
 
 async function updatePendingCount() {
@@ -628,6 +634,16 @@ async function searchSermons() {
 // ===== STATISTIEKEN =====
 async function loadStatistics() {
     try {
+        // Check of we offline zijn
+        if (!navigator.onLine) {
+            document.querySelector('.stats-grid').innerHTML = `
+                <div class="message" style="grid-column: 1/-1; background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                    📱 Offline - statistieken zijn alleen beschikbaar wanneer je online bent
+                </div>
+            `;
+            return;
+        }
+        
         const response = await fetch(`${DB_CONFIG.apiEndpoint}/stats`);
         const stats = await response.json();
         
@@ -658,6 +674,21 @@ async function loadStatistics() {
 
     } catch (error) {
         console.error('Error loading stats:', error);
+        
+        // Check of het een network error is
+        if (!navigator.onLine || error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+            document.querySelector('.stats-grid').innerHTML = `
+                <div class="message" style="grid-column: 1/-1; background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                    📱 Offline - statistieken zijn alleen beschikbaar wanneer je online bent
+                </div>
+            `;
+        } else {
+            document.querySelector('.stats-grid').innerHTML = `
+                <div class="message error" style="grid-column: 1/-1;">
+                    Fout bij laden statistieken: ${error.message}
+                </div>
+            `;
+        }
     }
 }
 
