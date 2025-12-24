@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadOccasions();
     setupEventListeners();
     setTodayDate();
+    displayUserInfo();
 });
 
 function setupEventListeners() {
@@ -673,6 +674,20 @@ function formatPassageReference(passage, bookName) {
     }
     
     return ref;
+}
+
+async function displayUserInfo() {
+    try {
+        const response = await fetch('/api/user-info');
+        const data = await response.json();
+        
+        if (data.email) {
+            const userInfoEl = document.getElementById('user-info');
+            userInfoEl. innerHTML = `✓ Ingelogd als: <strong>${data.email}</strong>`;
+        }
+    } catch (error) {
+        console.error('Could not load user info:', error);
+    }
 }
 
 // Close modal bij klikken buiten de modal
