@@ -1,391 +1,236 @@
-<! DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D1 Database Manager</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background:  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow:  0 10px 40px rgba(0,0,0,0.2);
-            padding: 30px;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .form-section {
-            background: #f7f7f7;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 600;
-        }
-        
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size:  14px;
-            transition: border-color 0.3s;
-        }
-        
-        input: focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
-        . btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5568d3;
-        }
-        
-        .btn-success {
-            background: #48bb78;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #38a169;
-        }
-        
-        .btn-danger {
-            background: #f56565;
-            color: white;
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-        
-        .btn-danger:hover {
-            background:  #e53e3e;
-        }
-        
-        .btn-edit {
-            background: #ed8936;
-            color: white;
-            padding: 5px 10px;
-            font-size: 12px;
-            margin-right: 5px;
-        }
-        
-        .btn-edit:hover {
-            background: #dd6b20;
-        }
-        
-        .items-list {
-            margin-top: 20px;
-        }
-        
-        .item-card {
-            background: white;
-            border:  2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom:  15px;
-            transition: all 0.3s;
-        }
-        
-        .item-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-        }
-        
-        .item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .item-title {
-            font-size: 18px;
-            font-weight:  600;
-            color: #2d3748;
-        }
-        
-        .item-description {
-            color: #4a5568;
-            line-height: 1.6;
-        }
-        
-        . item-actions {
-            margin-top: 10px;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .message {
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom:  20px;
-            text-align:  center;
-        }
-        
-        .message.success {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        
-        .message. error {
-            background: #fed7d7;
-            color:  #742a2a;
-        }
-    </style>
+    <title>Preeknotities Beheer</title>
+    <link rel="stylesheet" href="styles. css">
 </head>
 <body>
     <div class="container">
-        <h1>🗄️ D1 Database Manager</h1>
-        
-        <div id="message" class="message hidden"></div>
-        
-        <div class="form-section">
-            <h2 id="formTitle">Add New Item</h2>
-            <form id="itemForm">
-                <input type="hidden" id="itemId" value="">
-                
-                <div class="form-group">
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" required>
+        <header>
+            <h1>📖 Preeknotities Beheer</h1>
+            <p>Beheer je preeknotities en bijbelgedeelten</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-button active" onclick="showTab('add-sermon')">Preek Toevoegen</button>
+            <button class="tab-button" onclick="showTab('view-sermons')">Preken Bekijken</button>
+            <button class="tab-button" onclick="showTab('search')">Zoeken</button>
+            <button class="tab-button" onclick="showTab('stats')">Statistieken</button>
+        </nav>
+
+        <!-- TAB 1: Preek Toevoegen -->
+        <div id="add-sermon" class="tab-content active">
+            <h2>Nieuwe Preek Toevoegen</h2>
+            
+            <form id="sermon-form">
+                <div class="form-section">
+                    <h3>Basis Informatie</h3>
+                    
+                    <div class="form-group">
+                        <label for="location">Locatie *</label>
+                        <input type="text" id="location" required placeholder="bijv. Grote Kerk Amsterdam">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="preacher">Predikant/Dominee *</label>
+                        <input type="text" id="preacher" required placeholder="bijv. Ds. J.  de Vries">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sermon-date">Datum *</label>
+                        <input type="date" id="sermon-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="occasion">Gelegenheid</label>
+                        <select id="occasion">
+                            <option value="">-- Selecteer gelegenheid --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="core-text">Kerntekst *</label>
+                        <textarea id="core-text" required placeholder="bijv. Want alzo lief heeft God de wereld gehad..." rows="3"></textarea>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="description">Description:</label>
-                    <textarea id="description" required></textarea>
+
+                <div class="form-section">
+                    <h3>Bijbelgedeelten</h3>
+                    <div id="passages-container">
+                        <div class="passage-entry" data-passage-id="1">
+                            <h4>Bijbelgedeelte 1 (hoofdgedeelte)</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Bijbelboek *</label>
+                                    <select class="bible-book" required>
+                                        <option value="">-- Selecteer boek --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Hoofdstuk *</label>
+                                    <input type="number" class="chapter-start" min="1" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Vers (optioneel)</label>
+                                    <input type="number" class="verse-start" min="1">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Tot hoofdstuk (optioneel)</label>
+                                    <input type="number" class="chapter-end" min="1">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Tot vers (optioneel)</label>
+                                    <input type="number" class="verse-end" min="1">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Link naar bijbelgedeelte</label>
+                                <input type="url" class="passage-url" placeholder="https://debijbel.nl/... ">
+                            </div>
+
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" class="is-main" checked disabled>
+                                <label>Hoofdgedeelte</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-secondary" onclick="addPassageEntry()">+ Bijbelgedeelte Toevoegen</button>
                 </div>
-                
-                <button type="submit" class="btn btn-primary" id="submitBtn">Add Item</button>
-                <button type="button" class="btn btn-success hidden" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
+
+                <div class="form-section">
+                    <h3>Preekpunten</h3>
+                    <div id="points-container">
+                        <!-- Punten worden hier dynamisch toegevoegd -->
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn-secondary" onclick="addPoint('inleiding')">+ Inleiding</button>
+                        <button type="button" class="btn-secondary" onclick="addPoint('punt')">+ Punt</button>
+                        <button type="button" class="btn-secondary" onclick="addPoint('toepassing')">+ Toepassing</button>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Preek Opslaan</button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">Formulier Leegmaken</button>
+                </div>
             </form>
+
+            <div id="form-message" class="message"></div>
         </div>
-        
-        <div class="items-list">
-            <h2>Items</h2>
-            <div id="itemsContainer">
-                <p style="text-align: center; color: #999;">Loading items...</p>
+
+        <!-- TAB 2: Preken Bekijken -->
+        <div id="view-sermons" class="tab-content">
+            <h2>Preken Overzicht</h2>
+            
+            <div class="filters">
+                <div class="form-group">
+                    <label for="filter-preacher">Filter op predikant: </label>
+                    <select id="filter-preacher">
+                        <option value="">Alle predikanten</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filter-occasion">Filter op gelegenheid: </label>
+                    <select id="filter-occasion">
+                        <option value="">Alle gelegenheden</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filter-year">Filter op jaar:</label>
+                    <select id="filter-year">
+                        <option value="">Alle jaren</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" onclick="loadSermons()">Filteren</button>
+            </div>
+
+            <div id="sermons-list" class="sermons-list">
+                <!-- Preken worden hier geladen -->
+            </div>
+        </div>
+
+        <!-- TAB 3: Zoeken -->
+        <div id="search" class="tab-content">
+            <h2>Zoeken in Preken</h2>
+            
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Zoek op kernwoorden, bijbelboek, predikant... ">
+                <button class="btn-primary" onclick="searchSermons()">Zoeken</button>
+            </div>
+
+            <div id="search-results" class="sermons-list">
+                <!-- Zoekresultaten komen hier -->
+            </div>
+        </div>
+
+        <!-- TAB 4: Statistieken -->
+        <div id="stats" class="tab-content">
+            <h2>Statistieken</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Totaal Preken</h3>
+                    <div class="stat-number" id="total-sermons">0</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Predikanten</h3>
+                    <div class="stat-number" id="total-preachers">0</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Meest Gebruikte Bijbelboek</h3>
+                    <div class="stat-text" id="most-used-book">-</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Dit Jaar</h3>
+                    <div class="stat-number" id="sermons-this-year">0</div>
+                </div>
+            </div>
+
+            <div class="stats-details">
+                <h3>Preken per Predikant</h3>
+                <div id="preachers-stats"></div>
+
+                <h3>Preken per Gelegenheid</h3>
+                <div id="occasions-stats"></div>
+
+                <h3>Top 10 Bijbelboeken</h3>
+                <div id="books-stats"></div>
+            </div>
+
+            <button class="btn-primary" onclick="loadStatistics()">Statistieken Vernieuwen</button>
+        </div>
+
+        <!-- Modal voor preek details -->
+        <div id="sermon-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="sermon-details"></div>
+                <div class="modal-actions">
+                    <button class="btn-danger" onclick="deleteSermon()">Verwijderen</button>
+                    <button class="btn-secondary" onclick="closeModal()">Sluiten</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        const API_BASE = '/api/items';
-        let editingId = null;
-
-        // Load items on page load
-        document. addEventListener('DOMContentLoaded', () => {
-            loadItems();
-            
-            document.getElementById('itemForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const name = document.getElementById('name').value;
-                const description = document. getElementById('description').value;
-                const id = document.getElementById('itemId').value;
-                
-                if (id) {
-                    await updateItem(id, name, description);
-                } else {
-                    await createItem(name, description);
-                }
-            });
-        });
-
-        // Load all items
-        async function loadItems() {
-            try {
-                const response = await fetch(API_BASE);
-                const items = await response.json();
-                
-                const container = document.getElementById('itemsContainer');
-                
-                if (items.length === 0) {
-                    container. innerHTML = '<p style="text-align: center; color: #999;">No items yet.  Add your first item above!</p>';
-                    return;
-                }
-                
-                container.innerHTML = items.map(item => `
-                    <div class="item-card">
-                        <div class="item-header">
-                            <span class="item-title">${escapeHtml(item.name)}</span>
-                        </div>
-                        <div class="item-description">${escapeHtml(item.description)}</div>
-                        <div class="item-actions">
-                            <button class="btn btn-edit" onclick="editItem(${item.id}, '${escapeHtml(item.name)}', '${escapeHtml(item.description)}')">Edit</button>
-                            <button class="btn btn-danger" onclick="deleteItem(${item.id})">Delete</button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                showMessage('Error loading items:  ' + error.message, 'error');
-            }
-        }
-
-        // Create new item
-        async function createItem(name, description) {
-            try {
-                const response = await fetch(API_BASE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, description })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showMessage('Item created successfully!', 'success');
-                    document.getElementById('itemForm').reset();
-                    loadItems();
-                } else {
-                    showMessage('Error:  ' + result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error creating item: ' + error.message, 'error');
-            }
-        }
-
-        // Update item
-        async function updateItem(id, name, description) {
-            try {
-                const response = await fetch(API_BASE, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, name, description })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showMessage('Item updated successfully! ', 'success');
-                    cancelEdit();
-                    loadItems();
-                } else {
-                    showMessage('Error: ' + result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error updating item: ' + error.message, 'error');
-            }
-        }
-
-        // Delete item
-        async function deleteItem(id) {
-            if (! confirm('Are you sure you want to delete this item?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_BASE}? id=${id}`, {
-                    method: 'DELETE'
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showMessage('Item deleted successfully!', 'success');
-                    loadItems();
-                } else {
-                    showMessage('Error: ' + result. error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error deleting item: ' + error.message, 'error');
-            }
-        }
-
-        // Edit item
-        function editItem(id, name, description) {
-            document.getElementById('itemId').value = id;
-            document.getElementById('name').value = unescapeHtml(name);
-            document.getElementById('description').value = unescapeHtml(description);
-            document.getElementById('formTitle').textContent = 'Edit Item';
-            document.getElementById('submitBtn').textContent = 'Update Item';
-            document.getElementById('cancelBtn').classList.remove('hidden');
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Cancel edit
-        function cancelEdit() {
-            document.getElementById('itemForm').reset();
-            document. getElementById('itemId').value = '';
-            document.getElementById('formTitle').textContent = 'Add New Item';
-            document.getElementById('submitBtn').textContent = 'Add Item';
-            document.getElementById('cancelBtn').classList.add('hidden');
-        }
-
-        // Show message
-        function showMessage(text, type) {
-            const messageEl = document.getElementById('message');
-            messageEl.textContent = text;
-            messageEl.className = `message ${type}`;
-            messageEl.classList.remove('hidden');
-            
-            setTimeout(() => {
-                messageEl. classList.add('hidden');
-            }, 3000);
-        }
-
-        // Escape HTML to prevent XSS
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Unescape HTML
-        function unescapeHtml(text) {
-            const div = document.createElement('div');
-            div.innerHTML = text;
-            return div. textContent;
-        }
-    </script>
+    <script src="functions.js"></script>
 </body>
 </html>
