@@ -1045,7 +1045,10 @@ async function showSermonDetails(sermonId) {
         `;
 
         passages.forEach(passage => {
-            const reference = formatPassageReference(passage, passage.book_name);
+            // Lookup book name from local BIBLE_BOOKS array
+            const book = BIBLE_BOOKS.find(b => b.id == passage.bible_book_id);
+            const bookName = book ? book.name : `Book ${passage.bible_book_id}`;
+            const reference = formatPassageReference(passage, bookName);
             
             detailsHTML += `
                 <p>

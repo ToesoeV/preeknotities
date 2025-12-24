@@ -20,10 +20,9 @@ export async function onRequestGet(context) {
       }, { status: 404 });
     }
     
-    const { results:  passages } = await context.env.DB. prepare(
-      `SELECT sp.*, bb.name as book_name 
+    const { results: passages } = await context.env.DB.prepare(
+      `SELECT sp.* 
        FROM sermon_passages sp 
-       JOIN bible_books bb ON sp.bible_book_id = bb.id 
        WHERE sp.sermon_id = ?`
     ).bind(sermonId).all();
     
