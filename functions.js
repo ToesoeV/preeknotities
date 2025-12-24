@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup core text auto-generation
     setupCoreTextAutoGeneration();
     
+    // Auto-add default sermon structure
+    initializeDefaultPoints();
+    
     setupEventListeners();
     setTodayDate();
     displayUserInfo();
@@ -711,6 +714,18 @@ function removePoint(pointId) {
     const point = document.querySelector(`[data-point-id="${pointId}"]`);
     if (point) {
         point.remove();
+    }
+}
+
+function initializeDefaultPoints() {
+    // Only add default points if container is empty
+    const container = document.getElementById('points-container');
+    if (container && container.children.length === 0) {
+        addPoint('inleiding');
+        addPoint('punt');
+        addPoint('punt');
+        addPoint('punt');
+        addPoint('toepassing');
     }
 }
 
