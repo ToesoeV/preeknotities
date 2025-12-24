@@ -1,10 +1,10 @@
 const CACHE_NAME = 'preeknotities-v6';
 const urlsToCache = [
   '/index.html',
-  '/styles.css',
-  '/static-data.js',
-  '/functions.js',
-  '/offline-db.js',
+  '/styles.css?v=6',
+  '/static-data.js?v=6',
+  '/functions.js?v=6',
+  '/offline-db.js?v=6',
   '/manifest.json',
   '/icons/logo.svg'
 ];
