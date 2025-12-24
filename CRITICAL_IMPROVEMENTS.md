@@ -833,10 +833,17 @@ Create new file `offline.html`:
             De Preeknotities app werkt offline! Je kunt preken toevoegen en ze worden 
             automatisch gesynchroniseerd zodra je weer online bent.
         </p>
-        <button class="btn" onclick="window.location.href='/'">
+        <button class="btn" id="offline-btn">
             Ga naar de app
         </button>
     </div>
+    
+    <script>
+        // Avoid inline handler to maintain CSP compliance
+        document.getElementById('offline-btn').addEventListener('click', function() {
+            window.location.href = '/';
+        });
+    </script>
 </body>
 </html>
 ```
