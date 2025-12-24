@@ -28,11 +28,11 @@ function setTodayDate() {
 // ===== TAB NAVIGATIE =====
 function showTab(tabName) {
     // Verberg alle tabs
-    const tabs = document. querySelectorAll('.tab-content');
+    const tabs = document.querySelectorAll('.tab-content');
     tabs.forEach(tab => tab.classList.remove('active'));
 
     // Verwijder active van alle buttons
-    const buttons = document.querySelectorAll('. tab-button');
+    const buttons = document.querySelectorAll('.tab-button');
     buttons.forEach(btn => btn.classList.remove('active'));
 
     // Toon geselecteerde tab
@@ -65,7 +65,7 @@ async function loadBibleBooks() {
 }
 
 function populateBibleBookSelects(books) {
-    const selects = document.querySelectorAll('. bible-book');
+    const selects = document.querySelectorAll('.bible-book');
     
     selects.forEach(select => {
         select.innerHTML = '<option value="">-- Selecteer boek --</option>';
@@ -80,22 +80,22 @@ function populateBibleBookSelects(books) {
             otBooks.forEach(book => {
                 const option = document.createElement('option');
                 option.value = book.id;
-                option.textContent = book. name;
+                option.textContent = book.name;
                 option.dataset.chapters = book.total_chapters;
-                otGroup. appendChild(option);
+                otGroup.appendChild(option);
             });
             select.appendChild(otGroup);
         }
 
         if (ntBooks.length > 0) {
-            const ntGroup = document. createElement('optgroup');
+            const ntGroup = document.createElement('optgroup');
             ntGroup.label = 'Nieuw Testament';
-            ntBooks. forEach(book => {
+            ntBooks.forEach(book => {
                 const option = document.createElement('option');
-                option.value = book. id;
+                option.value = book.id;
                 option.textContent = book.name;
                 option.dataset.chapters = book.total_chapters;
-                ntGroup. appendChild(option);
+                ntGroup.appendChild(option);
             });
             select.appendChild(ntGroup);
         }
@@ -109,7 +109,7 @@ async function loadOccasions() {
         const occasions = await response.json();
         
         if (occasions.error) {
-            console. error('Error loading occasions:', occasions. error);
+            console.error('Error loading occasions:', occasions.error);
             return;
         }
         
@@ -122,14 +122,14 @@ async function loadOccasions() {
 function populateOccasionSelects(occasions) {
     const selects = ['occasion', 'filter-occasion'];
     
-    selects. forEach(selectId => {
+    selects.forEach(selectId => {
         const select = document.getElementById(selectId);
         if (! select) return;
 
         const defaultOption = select.querySelector('option[value=""]');
         select.innerHTML = '';
         if (defaultOption) {
-            select.appendChild(defaultOption. cloneNode(true));
+            select.appendChild(defaultOption.cloneNode(true));
         }
 
         occasions.forEach(occ => {
@@ -184,7 +184,7 @@ function addPassageEntry() {
 
             <div class="form-group">
                 <label>Link naar bijbelgedeelte</label>
-                <input type="url" class="passage-url" placeholder="https://debijbel.nl/... ">
+                <input type="url" class="passage-url" placeholder="https://debijbel.nl/...">
             </div>
 
             <div class="form-group checkbox-group">
@@ -223,12 +223,12 @@ function addPoint(type) {
             
             <div class="form-group">
                 <label>Titel (optioneel)</label>
-                <input type="text" class="point-title" placeholder="bijv. Gods liefde voor de wereld">
+                <input type="text" class="point-title" placeholder="bijv.Gods liefde voor de wereld">
             </div>
 
             <div class="form-group">
                 <label>Inhoud</label>
-                <textarea class="point-content" rows="4" placeholder="Notities... "></textarea>
+                <textarea class="point-content" rows="4" placeholder="Notities..."></textarea>
             </div>
 
             <input type="hidden" class="point-type" value="${type}">
@@ -240,7 +240,7 @@ function addPoint(type) {
 }
 
 function removePoint(pointId) {
-    const point = document. querySelector(`[data-point-id="${pointId}"]`);
+    const point = document.querySelector(`[data-point-id="${pointId}"]`);
     if (point) {
         point.remove();
     }
@@ -270,12 +270,12 @@ async function handleSermonSubmit(e) {
             
             passages.push({
                 bible_book_id: parseInt(bibleBookId),
-                chapter_start: parseInt(entry. querySelector('.chapter-start').value),
+                chapter_start: parseInt(entry.querySelector('.chapter-start').value),
                 verse_start: parseInt(entry.querySelector('.verse-start').value) || null,
                 chapter_end: parseInt(entry.querySelector('.chapter-end').value) || null,
                 verse_end: parseInt(entry.querySelector('.verse-end').value) || null,
                 is_main_passage:  entry.querySelector('.is-main').checked ?  1 : 0,
-                passage_url: entry. querySelector('.passage-url').value || null
+                passage_url: entry.querySelector('.passage-url').value || null
             });
         });
 
@@ -283,7 +283,7 @@ async function handleSermonSubmit(e) {
         const points = [];
         document.querySelectorAll('.point-entry').forEach((entry, index) => {
             const content = entry.querySelector('.point-content').value;
-            if (content. trim()) {
+            if (content.trim()) {
                 points.push({
                     point_type:  entry.querySelector('.point-type').value,
                     point_order: index + 1,
@@ -325,7 +325,7 @@ async function handleSermonSubmit(e) {
 
     } catch (error) {
         messageDiv.className = 'message error';
-        messageDiv. textContent = '✗ Fout bij opslaan:  ' + error.message;
+        messageDiv.textContent = '✗ Fout bij opslaan:  ' + error.message;
         messageDiv.style.display = 'block';
     }
 }
@@ -355,7 +355,7 @@ async function loadSermons() {
         const response = await fetch(`${DB_CONFIG.apiEndpoint}/sermons`);
         const sermons = await response.json();
         
-        if (sermons. error) {
+        if (sermons.error) {
             throw new Error(sermons.error);
         }
 
@@ -384,7 +384,7 @@ function displaySermons(sermons, container) {
         
         const card = document.createElement('div');
         card.className = 'sermon-card';
-        card.onclick = () => showSermonDetails(sermon. id);
+        card.onclick = () => showSermonDetails(sermon.id);
         
         card.innerHTML = `
             <h3>${sermon.location}</h3>
@@ -393,7 +393,7 @@ function displaySermons(sermons, container) {
                 <span>📅 ${formatDate(sermon.sermon_date)}</span>
                 <span>🎯 ${occasionName}</span>
             </div>
-            <div class="sermon-preview">"${sermon.core_text. substring(0, 100)}..."</div>
+            <div class="sermon-preview">"${sermon.core_text.substring(0, 100)}..."</div>
         `;
         
         container.appendChild(card);
@@ -402,7 +402,7 @@ function displaySermons(sermons, container) {
 
 function populateFilterOptions(sermons) {
     // Unique preachers
-    const preachers = [... new Set(sermons.map(s => s.preacher))];
+    const preachers = [...new Set(sermons.map(s => s.preacher))];
     const preacherSelect = document.getElementById('filter-preacher');
     preacherSelect.innerHTML = '<option value="">Alle predikanten</option>';
     preachers.forEach(p => {
@@ -461,7 +461,7 @@ async function loadStatistics() {
         }
         
         document.getElementById('total-sermons').textContent = stats.totalSermons || 0;
-        document.getElementById('total-preachers').textContent = stats. totalPreachers || 0;
+        document.getElementById('total-preachers').textContent = stats.totalPreachers || 0;
         document.getElementById('sermons-this-year').textContent = stats.sermonsThisYear || 0;
         
         if (stats.bookStats && stats.bookStats.length > 0) {
@@ -496,7 +496,7 @@ function displayPreachersStatsFromAPI(stats, total) {
     }
     
     stats.forEach(stat => {
-        const percentage = total > 0 ? (stat. count / total * 100).toFixed(1) : 0;
+        const percentage = total > 0 ? (stat.count / total * 100).toFixed(1) : 0;
         container.innerHTML += `
             <div class="stat-bar">
                 <span>${stat.preacher}</span>
@@ -569,7 +569,7 @@ async function showSermonDetails(sermonId) {
             <h2>${sermon.location}</h2>
             <div class="sermon-meta" style="margin-bottom: 20px;">
                 <span>👤 ${sermon.preacher}</span>
-                <span>📅 ${formatDate(sermon. sermon_date)}</span>
+                <span>📅 ${formatDate(sermon.sermon_date)}</span>
             </div>
 
             <h3>Kerntekst</h3>
