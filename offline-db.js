@@ -93,7 +93,7 @@ class OfflineDB {
             const store = transaction.objectStore(STORE_NAME);
             const index = store.index('synced');
             
-            const request = index.getAll(false); // Alleen niet-gesynchroniseerde
+            const request = index.getAll(IDBKeyRange.only(false)); // Alleen niet-gesynchroniseerde
             
             request.onsuccess = () => resolve(request.result);
             request.onerror = () => reject(request.error);
@@ -148,7 +148,7 @@ class OfflineDB {
             const store = transaction.objectStore(STORE_NAME);
             const index = store.index('synced');
             
-            const request = index.count(false);
+            const request = index.count(IDBKeyRange.only(false));
             
             request.onsuccess = () => resolve(request.result);
             request.onerror = () => reject(request.error);

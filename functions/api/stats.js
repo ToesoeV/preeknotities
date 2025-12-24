@@ -26,13 +26,13 @@ export async function onRequestGet(context) {
       'SELECT preacher, COUNT(*) as count FROM sermons WHERE user_id = ? GROUP BY preacher ORDER BY count DESC'
     ).bind(userEmail).all();
     
+    // Get book stats without JOIN - return book_id and count
     const { results: bookStats } = await context.env.DB.prepare(
-      `SELECT b.name, COUNT(sp.id) as count 
+      `SELECT sp.bible_book_id, COUNT(sp.id) as count 
        FROM sermon_passages sp 
        JOIN sermons s ON sp.sermon_id = s.id 
-       JOIN bible_books b ON sp.bible_book_id = b.id 
        WHERE s.user_id = ? 
-       GROUP BY b.name 
+       GROUP BY sp.bible_book_id 
        ORDER BY count DESC 
        LIMIT 10`
     ).bind(userEmail).all();

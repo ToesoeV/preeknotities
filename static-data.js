@@ -87,7 +87,7 @@ const OCCASIONS = [
     { id: 7, name: 'Pasen' },
     { id: 8, name: 'Pinksteren' },
     { id: 9, name: 'Hemelvaart' },
-    { id: 10, name: 'Nieuwjaar' },
+    { id: 10, name: 'Jaarwisseling' },
     { id: 11, name: 'Goede Vrijdag' },
     { id: 12, name: 'Biddag' },
     { id: 13, name: 'Dankdag' },
