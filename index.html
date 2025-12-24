@@ -262,9 +262,21 @@
                     .then(registration => {
                         console.log('✅ Service Worker geregistreerd:', registration.scope);
                         
+                        // Force update check
+                        registration.update();
+                        
                         // Check for updates
                         registration.addEventListener('updatefound', () => {
                             console.log('🔄 Service Worker update gevonden');
+                            const newWorker = registration.installing;
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    console.log('✅ Nieuwe Service Worker actief - reload page');
+                                    // Auto-reload als nieuwe SW actief is
+                                    window.location.reload();
+                                }
+                            });
                         });
                         
                         // Registreer background sync voor pending sermons
