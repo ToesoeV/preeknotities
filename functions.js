@@ -1176,8 +1176,12 @@ function displaySermons(sermons, container) {
     
     sermons.forEach(sermon => {
         // Lookup occasion name from local OCCASIONS array
-        const occasion = OCCASIONS.find(o => o.id == sermon.occasion_id);
+        // Convert both to numbers for proper comparison
+        const occasionId = sermon.occasion_id ? parseInt(sermon.occasion_id) : 16;
+        const occasion = OCCASIONS.find(o => o.id === occasionId);
         const occasionName = occasion ? occasion.name : 'Reguliere dienst';
+        
+        console.log('Debug occasion:', { sermon_id: sermon.id, occasion_id: sermon.occasion_id, parsed_id: occasionId, found_occasion: occasion });
         
         const card = document.createElement('div');
         card.className = 'sermon-card';
