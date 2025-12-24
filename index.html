@@ -30,56 +30,28 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Theme Toggle Button -->
-    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Wissel tussen licht en donker thema">
-        🌙
-    </button>
-
-    <!-- Hamburger Menu Button -->
-    <button class="hamburger-menu" id="hamburger-menu" aria-label="Menu" title="Open menu">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
-
-    <!-- Sidebar Navigation -->
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>📖 Preeknotities</h2>
-            <button class="sidebar-close" id="sidebar-close" aria-label="Sluit menu">×</button>
-        </div>
-        
-        <div class="sidebar-content">
-            <button class="nav-item active" data-tab="add-sermon">
-                <span class="nav-icon">✏️</span>
-                <span class="nav-label">Nieuwe Preek</span>
-            </button>
-            <button class="nav-item" data-tab="view-sermons">
-                <span class="nav-icon">📚</span>
-                <span class="nav-label">Preken Bekijken</span>
-            </button>
-            <button class="nav-item" data-tab="search">
-                <span class="nav-icon">🔍</span>
-                <span class="nav-label">Zoeken</span>
-            </button>
-            <button class="nav-item" data-tab="stats">
-                <span class="nav-icon">📊</span>
-                <span class="nav-label">Statistieken</span>
-            </button>
+    <!-- Header Navigation -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">📖 Preeknotities</h1>
             
-            <div class="sidebar-divider"></div>
+            <nav class="nav">
+                <button class="nav-btn active" data-tab="add-sermon">Nieuwe Preek</button>
+                <button class="nav-btn" data-tab="view-sermons">Preken</button>
+                <button class="nav-btn" data-tab="search">Zoeken</button>
+                <button class="nav-btn" data-tab="stats">Statistieken</button>
+            </nav>
             
-            <div class="sidebar-info">
-                <div id="offline-status" class="online-status online">🌐 Online</div>
-                <div id="user-info" class="user-info-compact"></div>
+            <div class="header-actions">
+                <div id="offline-status" class="status online">🌐 Online</div>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                    🌙
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <!-- Overlay for closing sidebar -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-    <div class="container">
+    <main class="main">
 
         <!-- TAB 1: Preek Toevoegen -->
         <div id="add-sermon" class="tab-content active">
@@ -302,7 +274,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script src="static-data.js"></script>
     <script src="offline-db.js"></script>
