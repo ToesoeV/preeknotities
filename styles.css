@@ -86,6 +86,12 @@ h1, h2, h3, h4 {
     gap: var(--space-8);
 }
 
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
 .logo {
     font-size: 1.5rem;
     font-weight: 700;
@@ -97,18 +103,24 @@ h1, h2, h3, h4 {
     display: flex;
     gap: var(--space-1);
     flex: 1;
+    justify-content: center;
 }
 
 .nav-btn {
-    padding: var(--space-2) var(--space-4);
+    padding: var(--space-3) var(--space-4);
     background: none;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 1.25rem;
     font-weight: 500;
     color: var(--text-light);
     transition: var(--transition);
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav-btn:hover {
@@ -119,18 +131,6 @@ h1, h2, h3, h4 {
 .nav-btn.active {
     background: var(--primary);
     color: white;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-}
-
-.status {
-    font-size: 0.875rem;
-    color: var(--success);
-    font-weight: 500;
 }
 
 .theme-toggle {
@@ -624,12 +624,14 @@ h1, h2, h3, h4 {
         align-items: stretch;
     }
     
-    .nav {
-        justify-content: center;
+    .logo-section {
+        justify-content: space-between;
+        width: 100%;
     }
     
-    .header-actions {
-        justify-content: space-between;
+    .nav {
+        justify-content: center;
+        gap: var(--space-2);
     }
     
     .main {
