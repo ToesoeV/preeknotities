@@ -1,4 +1,4 @@
-const CACHE_NAME = 'preeknotities-v8';
+const CACHE_NAME = 'preeknotities-v9';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -174,7 +174,7 @@ async function syncPendingSermons() {
 // IndexedDB helpers voor Service Worker
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('PreeknotitiesOffline', 3); // Match DB_VERSION
+    const request = indexedDB.open('PreeknotitiesOffline', 4); // Match DB_VERSION
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => {
       console.error('❌ SW: IndexedDB open error:', request.error);
